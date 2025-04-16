@@ -57,14 +57,17 @@ async def scrape_website(search):
 def index():
     """
     API endpoint to welcome.
-    Example: GET http://127.0.0.1:8000/scrape?search_string=https://example.com
+    Example: GET /
     """
-    return {"page_title": "hello"}
+    return {"message": "Hello world"}
 @app.get("/scrape")
 async def scrape_api(search_string: str):
     """
     API endpoint to scrape the SDSweb to get info of cars.
     Example: GET /scrape?search_string=<search_info_string>
     """
+    if search_string == None or search_string == "":
+        return {"message": "No data sent"}
+
     result = await scrape_website(search_string)
     return {"web_scrape_info": result}
