@@ -54,7 +54,7 @@ async def scrape_website(search):
 
 # Define FastAPI route
 @app.get("/")
-def scrape_api():
+def index():
     """
     API endpoint to welcome.
     Example: GET http://127.0.0.1:8000/scrape?search_string=https://example.com
