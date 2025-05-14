@@ -6,7 +6,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from browser_use.browser.context import BrowserContext
 from playwright.async_api import async_playwright
-
+from getCar import get_cars
 # Initialize FastAPI app
 app = FastAPI()
 load_dotenv()
@@ -18,7 +18,9 @@ selectors = {
     "redezvous": {"search_button": "#root > div.css-pxu7mn.evwjw926 > div > div > div.css-48tder.evwjw922 > div.css-wefypi.e1p817c0 > div.css-1qvekf5.e12pldzn0 > div > div > div > div > div > div > div > div.css-1v69dku.e1f378bo2 > div > div.e1f378bo1.css-1yghlif.e1bwztlu13 > div.css-zjik7.e1f378bo0 > span:nth-child(2) > button > div > div > svg"}
 }
 
-async def get_cars(search):
+
+
+async def get_cars_browser_use(search):
     browser = Browser(config=config)
     telephone = search
     # name = search["name"] if "name" in search else None
@@ -43,7 +45,9 @@ async def get_cars(search):
 	{'send_keys': {"keys":"Enter"}}, # Login
 	# {'click_element': {'index': 11}},
 	{'click_element': {'index': 12}}, # Redez-vous
-	{'click_element': {'index': 7}}, # Options
+    {'wait': {'seconds': 2}},
+	{'click_element': {'index': 8}}, # Options
+    {'wait': {'seconds': 2}},
     {'input_text': {'index': 37, 'text': telephone, "xpath":'//*[@id="CUSTOMER_PHONE"]'}}, # Telephone
     ]
     # if name:
@@ -54,7 +58,7 @@ async def get_cars(search):
     history =  await agent.run()
     result = history.final_result()
     extracted = history.extracted_content()
-    agent.browser.close()
+    await agent.browser.close()
     end_time  = time.time()
     execution_time = end_time - start_time
     print(f"⌚Execution time: {execution_time} seconds")
@@ -65,9 +69,7 @@ async def get_cars(search):
         
 
 async def make_appointament(info):
-    controller = Controller(exclude_actions=['open_tab', 'search_google'])
     
-    browser = Browser(config=config)
     # browser_context = BrowserContext(browser=browser)
     service_id = info["service_id"]
     telephone = info["telephone"]
@@ -76,21 +78,6 @@ async def make_appointament(info):
     trasnport_mode = info["transport_mode"]
     # name = info["name"] if "name" in info else None
     start_time = time.time()
-    # task = f"""
-    # Your objective is to make an appointment for a car service provided by the SDSweb
-    # Follow these instructions:
-    # *- If there's a list of choices of car to be made:
-    #     - Chose the {car}
-    # 1 - To go to service press on the double arrow on the top right of webpage to go to services: ">>"
-    # 2 - Press the "+" button on the top right of the webpage to see the service options
-    # 3 - On the "Code OP (Trv/Table)" input you ad this service code: {service_id}; You know press enter
-    # 4 - We have new element added to the list of services, press the double arrow on the top right of webpage to go to schedule page: ">>"
-    # 5 - On the middle top of the screen there's the dropdown menu, select the mode of transport you press and press the transport of: {trasnport_mode}
-    # 6 - On the middle of the screen we have the scheduler, you press and go until this date and choses on the screen the correct hour within this date string: {date}
-    # 7 - Now you add Pris par you add the code: 5543
-    # 8 - Lastly you press the banner of finished in the top right of the screen to finish the appointment. If it didn't show up now all information was added correctly, them you say that you failed.
-
-    # """
     initial_task = f"""
     Book a car service appointment using the SDSweb platform.
 
@@ -100,8 +87,16 @@ async def make_appointament(info):
     [Optional] Select Car
     If prompted to choose a car from a list, select the car labeled and click: {car}
 
-    If the car was selected successfully a new webpage with the car is displayed with info of the car, return: "Success"
-    else, return: "Failed"
+    Book a car service appointment using the SDSweb platform.
+    Instructions:
+    Navigate to Services
+    Click the Services Element on the right of the element Revision.
+    
+    Add a Service
+    Click the "+" (plus) button at the top-right of the screen to display service options with the index of 15.
+
+    Enter Service Code
+    In the "Code OP (Trv/Table)" input field, enter the following service code: {service_id}
     """
     # Click the double arrow ("»") located at the top-right of the webpage with index around 25 to enter the Services section.
     taskAddService = f"""
@@ -171,35 +166,102 @@ async def make_appointament(info):
 	# {'click_element': {'index': 11}},
 	{'click_element': {'index': 12}}, # Redez-vous
 	{'wait': {'seconds': 2}},
-	{'click_element': {'index': 7}}, # Options
+	{'click_element': {'index': 8}}, # Options
     {'input_text': {'index': 37, 'text': telephone, "xpath":'//*[@id="CUSTOMER_PHONE"]'}}, # Telephone
     ]
     # if name:
     #     initial_actions.append({'input_text': {'index': 41, 'text': name, "xpath":'//*[@id="CUSTOMER_NAME"]"]'}})
     initial_actions.append({'click_element': {'index': 29}})
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(config=config)
-        browser_context = await browser.new_context()
-        # agent = Agent(task=task, llm=ChatOpenAI(model="gpt-4o"),initial_actions=initial_actions, sensitive_data=sensitive_data)
-        agent0 = Agent(task=initial_task, llm=ChatOpenAI(model="gpt-4o"),initial_actions=initial_actions,browser=browser,controller=controller, context=browser_context)
+    browser = None # Initialize browser to None for finally block safety
+    try:
+        # Launch the browser instance
+        # Assuming Browser() handles launching. Adjust if using Playwright directly.
+        # If Browser is just a wrapper, you might need playwright.chromium.launch() etc.
+        browser = Browser(config=config)
 
+        # Create ONE context for the entire session
+        # async with await browser.new_context() as context: # Use 'context' variable here
+        context = await browser.new_context()
+        controller = Controller(exclude_actions=['open_tab', 'search_google'])
+
+        # Agent 0: Login and Car Selection
+        print("Running Agent 0: Login and Car Selection...")
+        # Pass the ACTUAL 'context' object to the agent
+        agent0 = Agent(task=initial_task, llm=ChatOpenAI(model="gpt-4o"), initial_actions=initial_actions, browser=browser, controller=controller, context=context)
         historyInitial = await agent0.run()
-        if "Failed" in historyInitial.final_result():
-            return "Failed to select the car. Please check the car name or the list of cars."
-        # result0 = history.final_result()
-        agent1 = Agent(task=taskAddService, llm=ChatOpenAI(model="gpt-4o"),browser=browser,controller=controller,context=browser_context)
-        historyService=await agent1.run()
-        if "Failed" in historyService.final_result():
-            return "Failed to select the service."
-        # extracted = history.extracted_content()
-        agent1.browser.close()
-        end_time  = time.time()
+        result0 = historyInitial.final_result()
+        print(f"Agent 0 Result: {result0}")
+
+        if "Failed" in result0 or "No car information found" in result0:
+                print(f"Process stopped after Agent 0: {result0}")
+                # No need to return here if finally block handles cleanup
+                raise Exception(f"Agent 0 Failed: {result0}") # Raise exception to trigger finally
+
+        # Agent 1: Add Service
+        # This agent continues in the SAME context, no initial_actions needed
+        print("Running Agent 1: Add Service...")
+        # Pass the SAME 'context' object
+        agent1 = Agent(task=taskAddService, llm=ChatOpenAI(model="gpt-4o"), browser=browser, controller=controller, context=context)
+        historyService = await agent1.run()
+        result1 = historyService.final_result()
+        print(f"Agent 1 Result: {result1}")
+
+        if "Failed" in result1:
+            print(f"Process stopped after Agent 1: {result1}")
+            raise Exception(f"Agent 1 Failed: {result1}") # Raise exception
+
+        # Agent 2: Schedule and Finalize (Uncommented and corrected)
+        print("Running Agent 2: Schedule and Finalize...")
+        # Pass the SAME 'context' object
+        # agent2 = Agent(task=taskScheduleFinalize, llm=ChatOpenAI(model="gpt-4o"), browser=browser, controller=controller, context=context)
+        # historyFinal = await agent2.run()
+        # result2 = historyFinal.final_result()
+        # print(f"Agent 2 Result: {result2}")
+
+        # if "Failed" in result2:
+        #      print(f"Process stopped after Agent 2: {result2}")
+        #      raise Exception(f"Agent 2 Failed: {result2}") # Raise exception
+
+        # If all agents succeeded
+        end_time = time.time()
         execution_time = end_time - start_time
         print(f"⌚Execution time: {execution_time} seconds")
-        if "Success" in historyService.final_result():
-            return "Success"
+        print("Appointment booking process completed successfully.")
+        return "Success" # Or return more detailed success info
+
+    except Exception as e:
+        print(f"An error occurred during the process: {e}")
+        # Optionally log the full traceback
+        # import traceback
+        # traceback.print_exc()
+        return f"Failed due to an error: {e}"
+
+    finally:
+        # Cleanup: The 'async with' statement handles context closing automatically.
+        # You primarily need to ensure the browser instance is closed if you launched it.
+        print("Starting cleanup...")
+        if browser:
+             # Check if the specific library requires an await for closing
+             # Check browser object type and method signature
+             # E.g., if it's raw Playwright: await browser.close()
+             # If it's a wrapper, it might be browser.close() or await browser.close_async() etc.
+             try:
+                 # Attempt to close, adjust based on your Browser class implementation
+                 if hasattr(browser, 'close_async') and callable(browser.close_async):
+                      await browser.close_async()
+                 elif hasattr(browser, 'close') and callable(browser.close):
+                     # Check if close is async or sync
+                     import inspect
+                     if inspect.iscoroutinefunction(browser.close):
+                         await browser.close()
+                     else:
+                         browser.close() # Or run in executor if it's blocking sync
+                 print("Browser closed.")
+             except Exception as close_err:
+                 print(f"Error closing browser: {close_err}")
         else:
-            return "Failed to select the service."
+            print("Browser object was not initialized.")
+        print("Cleanup finished.")
     # if result:
     #     return result
     # else:
