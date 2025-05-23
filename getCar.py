@@ -122,7 +122,7 @@ async def determine_post_phone_entry_state(page: Page, selectors_dict: dict, tim
     except PlaywrightTimeoutError: pass
     try:
         loc = page.locator(selectors_dict["vehiculesOrClients"])
-        if await loc.is_visible(timeout=1000):
+        if await loc.is_visible(timeout=1500):
             h2 = await loc.text_content()
             if "Clients" in h2:
                 return "MULTI_ACCOUNT_POPUP", page.locator(selectors_dict["popupCars"])

@@ -1,12 +1,12 @@
 import os, time, json
 from langchain_openai import ChatOpenAI
-from browser_use import Agent, Controller,BrowserConfig, Browser, ActionResult
+from browser_use import Agent, Controller,BrowserConfig, Browser
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from browser_use.browser.context import BrowserContext
-from playwright.async_api import async_playwright
 from getCar import get_cars
+from db import write_json_file, read_json_file, get_all_appointments_number, delete_all_appointments, delete_appointments_date, db_file
+from typing import Union
 # Initialize FastAPI app
 app = FastAPI()
 load_dotenv()
@@ -274,6 +274,8 @@ def index():
     Example: GET /
     """
     return {"message": "Hello world"}
+
+@app.get("/get_cars")
 @app.get("/get_cars")
 async def get_car_info_api(search_json_string: str):
     """
@@ -289,8 +291,37 @@ async def get_car_info_api(search_json_string: str):
     result = await get_cars(tel)
     return {"web_scrape_info": result}
 
+@app.get("/current_appointments")
+def get_appoitments():
+    """
+    Get current marked appointments (dates only).
+    """
+    result = read_json_file()
+    return result
+
+@app.get("/appointments_number")
+def get_appoitments_number(telephone: str):
+    """
+    Get array of marked appointments related to a telephone number.
+    """
+    result = get_all_appointments_number(telephone)
+    return result
+
+class AppointmentHourInfo(BaseModel):
+    date: str
+
+@app.post("/check_appointment_availability")
+def check_appoitment_availability(info: AppointmentHourInfo):
+    """
+    Check appointment availability for a specific date.
+    {"date":"YYYY-MM-DD"}
+    """
+    result = read_json_file()
+    # read_json_file returns only the date part (YYYY-MM-DD), so comparison should be safe.
+    return "It's not available" if info.date in result else "It's available"
+
 class AppointmentInfo(BaseModel):
-    service_id: str
+    service_id: Union[str, int]
     car: str
     telephone: str
     date: str
@@ -299,7 +330,7 @@ class AppointmentInfo(BaseModel):
 @app.post("/make_appointment")
 async def make_appointment_api(info: AppointmentInfo):
     """
-    API endpoint to scrape the SDSweb to make appointments.
+    API endpoint to make appointments.
     
     Example: 
     POST /make_appointment
@@ -308,15 +339,69 @@ async def make_appointment_api(info: AppointmentInfo):
         "service_id": "01TZZ1S16Z",
         "car": "AUDI Q5 2016",
         "telephone": "5145856444",
-        "date": "2025-05-01-15:00",
+        "date": "2025-05-01T15:00:00",
         "transport_mode": "Reconduire"
     }
     """
     if not info.service_id:
-        raise HTTPException(status_code=400, detail="Service number is required.")    
-    try:
-        result = await make_appointament(info.model_dump())  # Assuming make_appointment accepts a dictionary
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error during web scraping: {str(e)}")
+        raise HTTPException(status_code=400, detail="Service number is required.") 
     
-    return {"web_scrape_info": result}
+    try:
+        # Check if the exact datetime is already booked
+        # We need to read the full data to check for exact date and time conflicts
+        with open(db_file, 'r') as f:
+            existing_appointments = json.load(f)
+        
+        # Check for conflicts based on exact date and time string
+        is_booked = any(
+            appointment["date"] == info.date and appointment["telephone"] == info.telephone
+            for appointment in existing_appointments
+        )
+        
+        if is_booked: 
+            return {
+                "detail": "It's not available on the date and time given for this telephone number."
+            } 
+        else:
+            info.service_id = str(info.service_id)
+            result = write_json_file(info.model_dump()) # Use model_dump() to convert Pydantic model to dict
+            return {
+                "detail": "The appointment was successfully marked." if result 
+                          else "Failed to mark the appointment."
+            }
+            
+    except FileNotFoundError:
+        # If db.json doesn't exist, create it with the new appointment
+        info.service_id = str(info.service_id)
+        result = write_json_file(info.model_dump())
+        return {
+            "detail": "The appointment was successfully marked." if result 
+                      else "Failed to mark the appointment."
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error making appointment: {str(e)}")
+
+@app.delete("/delete_all_appointments/{telephone}")
+def delete_all_appointments_api(telephone: str):
+    """
+    Delete all appointments for a given telephone number.
+    Example: DELETE /delete_all_appointments/5145856444
+    """
+    success = delete_all_appointments(telephone)
+    if success:
+        return {"message": f"All appointments for telephone {telephone} deleted successfully."}
+    else:
+        raise HTTPException(status_code=500, detail=f"Failed to delete appointments for telephone {telephone}.")
+
+@app.delete("/delete_appointments_date")
+def delete_appointments_date_api(telephone: str, date: str):
+    """
+    Delete appointments for a specific telephone number and date.
+    Example: DELETE /delete_appointments_date?telephone=5145856444&date=2025-05-22
+    Date format: YYYY-MM-DD (or YYYY-MM-DDTHH:MM:SS)
+    """
+    success = delete_appointments_date(telephone, date)
+    if success:
+        return {"message": f"Appointments for telephone {telephone} on {date} deleted successfully."}
+    else:
+        raise HTTPException(status_code=500, detail=f"Failed to delete appointments for telephone {telephone} on {date}.")
