@@ -1,5 +1,4 @@
 import json
-
 db_file = "./db.json"
 
 def read_json_file():

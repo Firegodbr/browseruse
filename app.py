@@ -276,7 +276,6 @@ def index():
     return {"message": "Hello world"}
 
 @app.get("/get_cars")
-@app.get("/get_cars")
 async def get_car_info_api(search_json_string: str):
     """
     API endpoint to scrape the SDSweb to get info of cars.
