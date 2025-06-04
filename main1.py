@@ -10,6 +10,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 # Import database operations
 import database_ops as db
+from dotenv import load_dotenv
+load_dotenv()
 
 # --- Strawberry GraphQL Type Definitions ---
 @strawberry.type
