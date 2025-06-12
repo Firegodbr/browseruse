@@ -4,28 +4,7 @@ import time
 from playwright.async_api import async_playwright, Playwright, Page
 from playwright.async_api import TimeoutError as PlaywrightTimeoutError
 
-# --- Selectors (kept as provided by user, with notes) ---
-selectors = {
-    "username": "#username",
-    "password": "#password",
-    "redenzvous": "#appointments-qab > button",
-    "popupAvisaur": "div.KL-Index-List-Virtuoso",
-    "chris": "div.KL-Index-List-Virtuoso > div > div > div:nth-child(3) > button > div",
-    "telephoneInput": "#CUSTOMER_PHONE",
-    "popupCars": "body > div.MuiDialog-root.e7bgrhc8.KL-Dialog-root.e1h4yr2d8.e1de0imv0.MuiModal-root.css-1308mf0.e1de0imv0 > div.MuiDialog-container.MuiDialog-scrollPaper.css-fh1hs4.e1de0imv0",
-    "vehiculesOrClients":"h2.MuiTypography-root.MuiTypography-h2.MuiTypography-alignLeft.css-csbyx1.e1de0imv0",
-    "carsContainer": "div[data-testid='virtuoso-item-list'] > div",
-    "carButtons": "button > div.css-1y9oiq5.egp32mx11 > div.css-1dmiggy.egp32mx7",
-    "clientButtonsContainer": "div[data-testid='virtuoso-item-list']",
-    "clientButtonsContainerElements": "div[data-testid='virtuoso-item-list'] > div",
-    "clientName":"div.MuiTypography-root.MuiTypography-body2.MuiTypography-alignLeft.css-rz7rqr.e1de0imv0",
-    "clientsMultipleCarsSvg":"svg.svg-inline--fa.fa-car.css-1on8xt0.e9n5qpy17",
-    "clientsFilterBtn":"button.MuiButtonBase-root.MuiIconButton-root.MuiIconButton-sizeMedium.KL-Filter-button.FILTER.e1q00zgk7.e1de0imv0.css-1369qmj.e1de0imv0",
-    "notFound": "#snackbar_ERROR > div > div.MuiSnackbarContent-message.KL-SnackButton-CONTENT_MESSAGE.css-1o19295.e1de0imv0 > div > div",
-    "multiAccount": "dfasdfasdfa", # Placeholder: Update with a valid selector.
-    "revisionAlertPopup": "body > div.MuiDialog-root.e134bnih77.KL-Dialog-root.e1h4yr2d8.e1de0imv0.MuiModal-root.css-1i4r1ts.e1de0imv0 > div.MuiDialog-container.MuiDialog-scrollPaper.css-fh1hs4.e1de0imv0",
-    "singleCarInfo":"#root > div.css-pxu7mn.evwjw926 > div > div > div.css-48tder.evwjw922 > div.css-wefypi.e1p817c0 > div.css-1qvekf5.e12pldzn0 > div > div > div > div > div > div > div > div.css-yien0c.e1iianp710 > div > div:nth-child(2) > div > div.e6a24jq31.css-f2rizk.e1bwztlu13 > div.css-wi2bl2.e6a24jq33 > div:nth-child(2) > div > div.MuiTypography-root.MuiTypography-body2.MuiTypography-alignLeft.css-rz7rqr.e1de0imv0"
-}
+from .const import selectors
 
 # --- Target URL pattern for a single car page ---
 SINGLE_CAR_PAGE_URL_PATTERN = "https://toyosteu.sdswebapp.com:6819/SDSWeb/t1/appointments-qab/2"

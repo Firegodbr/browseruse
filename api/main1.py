@@ -5,11 +5,11 @@ from strawberry.fastapi import GraphQLRouter
 from fastapi import FastAPI
 from typing import List, Optional, NewType
 from contextlib import asynccontextmanager
-from getCar import get_cars
+from scrapers.getCar import get_cars
 from fastapi.middleware.cors import CORSMiddleware
-
+from helpers.function import normalize_canadian_number
 # Import database operations
-import database_ops as db
+import db.database_ops as db
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -181,23 +181,8 @@ app.add_middleware(
 )
 app.include_router(graphql_app, prefix="/graphql")
 
-@app.get("/")
-async def root():
-    return {"message": "Welcome to the Appointments API. Visit /graphql for the GraphQL interface."}
-def normalize_canadian_number(phone):
-    # Remove all non-digit characters
-    digits = re.sub(r'\D', '', phone)
 
-    # Remove leading '1' if it's an 11-digit number
-    if digits.startswith('1') and len(digits) == 11:
-        digits = digits[1:]
-
-    # Ensure it's now exactly 10 digits
-    if len(digits) != 10:
-        raise ValueError("Invalid Canadian phone number")
-
-    return digits
-@app.get("/get_cars")
+@app.get("/get_cars",tags=["get_cars"])
 async def get_car_info_api(search_json_string: str):
     """
     API endpoint to scrape the SDSweb to get info of cars.

@@ -4,3 +4,4 @@ __pycache__/*
 deploy.sh
 db.json
 db.sqlite
+__pycache__/
