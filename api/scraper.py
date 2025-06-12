@@ -1,5 +1,5 @@
 from scrapers.getCar import get_cars
-from scrapers.makeAppointment import making_appointment
+# from scrapers.makeAppointment import making_appointment
 from helpers.function import normalize_canadian_number
 from fastapi import APIRouter, HTTPException
 from models.schemas import AppointmentInfo
@@ -16,7 +16,7 @@ async def get_car_info_api(search_json_string: str):
     search_json_string: {"telephone": "5142069161"}
     """
     if search_json_string == None or search_json_string == "":
-        return {"message": "No data sent"}
+        return HTTPException(status_code=400, detail="No data sent")
     tel = search_json_string
     # result = await get_cars(json.loads(search_json_string))
     result = await get_cars(normalize_canadian_number(tel))
