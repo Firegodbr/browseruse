@@ -28,6 +28,18 @@ selectors = {
     "operation-input": "input#maintenanceKey",
     "calender-next": "div.css-1g8uxsn.e1wi0epg2 span.KL-Tooltip-anchor.css-1wrwbnl.e1di1sx80:nth-of-type(3) button.MuiButtonBase-root",
     "dialog-close": "button[cy='dialog-close']",
+    "time-table": "div[data-testid='virtuoso-item-list']",
+    "time-scrooler": "div.KL-Card-cardContentNoScroll.css-ccyqm.e1bwztlu12 div div[data-testid='virtuoso-scroller']"
+}
+
+daysWeek = {
+    "Sunday": 1,
+    "Monday": 2,
+    "Tuesday": 3,
+    "Wednesday": 4,
+    "Thursday": 5,
+    "Friday": 6,
+    "Saturday": 7,
 }
 async def login(page: Page, username:str, password:str) -> None:
     await page.fill(selectors["username"], username or "")

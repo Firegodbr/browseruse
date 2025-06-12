@@ -1,8 +1,8 @@
 from playwright.async_api import async_playwright, Playwright, Page
 import os, time, logging
 from datetime import datetime, timedelta
-# from .const import selectors, login
-from const import selectors, login
+from .const import selectors, login, daysWeek
+# from const import selectors, login, daysWeek
 # from models.schemas import AppointmentInfo
 from dotenv import load_dotenv
 import asyncio
@@ -18,15 +18,42 @@ class AppointmentInfo:
     date: str
     transport_mode: str
 
+def data_index(timeHM: str) -> int:
+    """Get the correct position of the time on the schedule table
 
-def get_weeks_until_date(target_datehour: str) -> tuple[int, str]:
+    Args:
+        time (str): Time in HH:MM format
+
+    Returns:
+        int: index of the position starting from 1 and goes until 63
+    """
+    starts = "6:45"
+    start_dt = datetime.strptime(starts, "%H:%M")
+    target_dt = datetime.strptime(timeHM, "%H:%M")
+    interval = 15  # minutes
+
+    # Ensure the time is within the valid range
+    if target_dt < start_dt or target_dt > datetime.strptime("22:00", "%H:%M"):
+        raise ValueError("Time is out of bounds (must be between 06:45 and 22:00)")
+
+    # Compute the number of intervals passed
+    delta = target_dt - start_dt
+    total_minutes = delta.total_seconds() / 60
+
+    # Calculate the index (1-based)
+    index = int(total_minutes // interval) + 2
+
+    return index
+
+
+def get_weeks_until_date(target_datehour: str) -> tuple[int, str, str]:
     """Calculate how many full weeks from today until the given target datehour.
 
     Args:
         target_datehour (str): datehour in format YYYY-MM-DDTHH:MM:SS
 
     Returns:
-        tuple: Number of full weeks and the day of the week when the target is reached.
+        tuple: Number of full weeks, day of the week, and time (HH:MM) of the target.
     """
     # Parse the target datehour
     target_datetime = datetime.strptime(target_datehour, "%Y-%m-%dT%H:%M:%S")
@@ -44,7 +71,7 @@ def get_weeks_until_date(target_datehour: str) -> tuple[int, str]:
     full_weeks = delta.days // 7
 
     # Return number of weeks and day of the week of the target date
-    return full_weeks, target_datetime.strftime("%A")
+    return full_weeks, target_datetime.strftime("%A"),  target_datetime.strftime("%H:%M")
 
 async def make_appointment_scrape(info: AppointmentInfo):
     async with async_playwright() as playwright:
@@ -106,15 +133,42 @@ async def making_appointment(playwright: Playwright, info: AppointmentInfo) -> s
         await page.wait_for_timeout(1000)
         
         print("INFO: Schedule operation: chose the right week")
-        clicks, weekday = get_weeks_until_date(date)
+        clicks, weekday, timeHM = get_weeks_until_date(date)
         for i in range(int(clicks)):
             await page.wait_for_timeout(500)
             await page.click(selectors["calender-next"])
         
         print("INFO: Schedule operation: chose the correct hour")
-        
+        time_index = data_index(timeHM)
+        max_retries = 20
+        retries = 0
+        found = False
+
+        while not found and retries < max_retries:
+            locator = page.locator(f"div[data-index='{time_index}']")
+            if await locator.count() > 0:
+                try:
+                    await locator.scroll_into_view_if_needed()
+                    found = True
+                    print("INFO: Element found")
+                    break
+                except Exception as e:
+                    print(f"INFO: Element exists but failed to check. Error: {e}")
+            else:
+                print("INFO: Element not found yet. Scrolling...")
+
+            await page.evaluate(f"""
+                document.querySelector("{selectors['time-scrooler']}").scrollBy(0, 200);
+            """)
+            await page.wait_for_timeout(500)
+            retries += 1
+        if not found:
+            print("ERROR: Max retries reached. Element not found.")
+        else:
+            day = daysWeek[weekday]
+            # Once the element is found, click the time-table
+            await page.click(f"div[data-index='{time_index}'] div div.css-122qvno.e1ri7uk73:nth-child({day})")
         await page.wait_for_timeout(30000)
-        
         
     except Exception as e:  
         print(f"An error occurred: {e}")
