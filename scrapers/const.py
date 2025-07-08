@@ -20,18 +20,26 @@ selectors = {
     "notFound": "#snackbar_ERROR > div > div.MuiSnackbarContent-message.KL-SnackButton-CONTENT_MESSAGE.css-1o19295.e1de0imv0 > div > div",
     "revisionAlertPopup": "body > div.MuiDialog-root.e134bnih77.KL-Dialog-root.e1h4yr2d8.e1de0imv0.MuiModal-root.css-1i4r1ts.e1de0imv0 > div.MuiDialog-container.MuiDialog-scrollPaper.css-fh1hs4.e1de0imv0",
     "singleCarInfo":"#root > div.css-pxu7mn.evwjw926 > div > div > div.css-48tder.evwjw922 > div.css-wefypi.e1p817c0 > div.css-1qvekf5.e12pldzn0 > div > div > div > div > div > div > div > div.css-yien0c.e1iianp710 > div > div:nth-child(2) > div > div.e6a24jq31.css-f2rizk.e1bwztlu13 > div.css-wi2bl2.e6a24jq33 > div:nth-child(2) > div > div.MuiTypography-root.MuiTypography-body2.MuiTypography-alignLeft.css-rz7rqr.e1de0imv0",
+    "popupTitle": ".MuiPaper-root div.KL-Dialog-headerTitle h2",
+    "carsList": "button.MuiButtonBase-root div.MuiTypography-root",
+    "popupTitle-add-redenvous":".MuiPaper-root span.KL-Tooltip-anchor button.MuiButtonBase-root div div svg.fa-plus",
     # Make an appointment
-    "car-page":"span.css-1nys5gm.euo2vaf14 svg.svg-inline--fa.fa-car.superChip-XLarge.KL-SuperChip-superChipIcon.css-19btgxe.euo2vaf17",
-    "next-step":"div[cy='next-step']",
-    "add-operation-button":"button[cy='add-operation-button']",
-    "container-operations":"body > div.MuiDialog-root.eujvbsz18.KL-Dialog-root.e1h4yr2d8.e1de0imv0.MuiModal-root.css-1gx1cd8.e1de0imv0 > div.MuiDialog-container.MuiDialog-scrollPaper.css-fh1hs4.e1de0imv0 > div",
-    "operation-input": "input#maintenanceKey",
-    "calender-next": "div.css-1g8uxsn.e1wi0epg2 span.KL-Tooltip-anchor.css-1wrwbnl.e1di1sx80:nth-of-type(3) button.MuiButtonBase-root",
-    "dialog-close": "button[cy='dialog-close']",
-    "time-table": "div[data-testid='virtuoso-item-list']",
-    "time-scrooler": "div.KL-Card-cardContentNoScroll.css-ccyqm.e1bwztlu12 div div[data-testid='virtuoso-scroller']"
+    "make-appointment":{
+        "car-page":"span.css-1nys5gm.euo2vaf14 svg.svg-inline--fa.fa-car.superChip-XLarge.KL-SuperChip-superChipIcon.css-19btgxe.euo2vaf17",
+        "next-step":"div[cy='next-step']",
+        "add-operation-button":"button[cy='add-operation-button']",
+        "container-operations":"body > div.MuiDialog-root.eujvbsz18.KL-Dialog-root.e1h4yr2d8.e1de0imv0.MuiModal-root.css-1gx1cd8.e1de0imv0 > div.MuiDialog-container.MuiDialog-scrollPaper.css-fh1hs4.e1de0imv0 > div",
+        "operation-input": "input#maintenanceKey",
+        "calender-next": "div.css-1g8uxsn.e1wi0epg2 span.KL-Tooltip-anchor.css-1wrwbnl.e1di1sx80:nth-of-type(3) button.MuiButtonBase-root",
+        "dialog-close": "button[cy='dialog-close']",
+        "taken-by": "input[id='takenBy.userKey']",
+        "finalize-qppointment": "div[cy='finalize-default-step']",
+        "time-table": "div[data-testid='virtuoso-item-list']",
+        "time-scrooler": "div.KL-Card-cardContentNoScroll.css-ccyqm.e1bwztlu12 div div[data-testid='virtuoso-scroller']",
+        "transport-input": "input.PrivateSwitchBase-input[type='radio']"
+    },
 }
-
+transport_types = ["aucun", "courtoisie", "attente", "reconduire", "laisser"]
 daysWeek = {
     "Sunday": 1,
     "Monday": 2,

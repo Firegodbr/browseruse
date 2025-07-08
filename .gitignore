@@ -5,3 +5,4 @@ deploy.sh
 db.json
 db.sqlite
 __pycache__/
+logs/app.log
