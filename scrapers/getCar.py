@@ -251,7 +251,7 @@ async def get_cars_with_state_logic(playwright: Playwright, telephone_number: in
     results = []
 
     chromium = playwright.chromium
-    browser = await chromium.launch(headless=False) # Set to True for production
+    browser = await chromium.launch(headless=True) # Set to True for production
     page = await browser.new_page()
 
     try:

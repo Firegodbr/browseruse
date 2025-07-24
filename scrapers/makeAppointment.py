@@ -137,7 +137,7 @@ async def making_appointment(playwright: Playwright, info: AppointmentInfo) -> s
     transport_mode = info.transport_mode
     start_time = time.time()
     chromium = playwright.chromium
-    browser = await chromium.launch(headless=False, args=["--start-maximized"] ) # Set to True for production
+    browser = await chromium.launch(headless=True, args=["--start-maximized"] ) # Set to True for production
     page = await browser.new_page(viewport={"width": 1920, "height": 1080})
     error_message = None
     try:
