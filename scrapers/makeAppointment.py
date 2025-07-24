@@ -1,9 +1,9 @@
 from playwright.async_api import async_playwright, Playwright, Page
-import os, time, logging
 from datetime import datetime, timedelta
-from .const import selectors, login, daysWeek, transport_types
+from .const import selectors, login, daysWeek, transport_types, insert_phone_number, click_redenvous, chose_aviseurs
 # from const import selectors, login, daysWeek
 from models.schemas import AppointmentInfo
+import os, time, logging
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -38,6 +38,7 @@ def data_index(timeHM: str) -> int:
     return index
 
 async def handle_popup(page: Page, telephone_number: str, car: str) -> None:
+    await page.wait_for_timeout(1000)
     logger.info(f" Checking for existing popup dialog for {telephone_number}")
     # Wait up to 2 seconds for the popup to appear instead of sleeping blindly
     popup_locator = page.locator(selectors["popupTitle"])
@@ -61,6 +62,9 @@ async def handle_popup(page: Page, telephone_number: str, car: str) -> None:
         
         elif text == "Véhicules":
             await find_car(page, car)
+            await page.wait_for_timeout(500)
+            await handle_popup(page, telephone_number, car)
+            
     
     except TimeoutError:
         logger.info(f" No existing popup dialog found for {telephone_number}")
@@ -112,7 +116,9 @@ async def find_car(page: Page, car: str) -> str:
     located_cars = page.locator(selector=selectors["carsList"])
     count = await located_cars.count()
     for i in range(count):
-        if (await located_cars.nth(i).text_content()).strip() == car:
+        car_text = (await located_cars.nth(i).text_content()).strip()
+        print(car_text, car)
+        if car_text == car.strip():
             await located_cars.nth(i).click()
             break
     return "Car found"
@@ -131,29 +137,25 @@ async def making_appointment(playwright: Playwright, info: AppointmentInfo) -> s
     transport_mode = info.transport_mode
     start_time = time.time()
     chromium = playwright.chromium
-    browser = await chromium.launch(headless=True, args=["--start-maximized"] ) # Set to True for production
+    browser = await chromium.launch(headless=False, args=["--start-maximized"] ) # Set to True for production
     page = await browser.new_page(viewport={"width": 1920, "height": 1080})
     error_message = None
     try:
-        await page.goto(os.getenv("SDS_URL"), wait_until="networkidle")
+        await page.goto(f"{os.getenv("SDS_URL")}/login", wait_until="networkidle")
         
         username = os.getenv('USERNAME_SDS')
         password = os.getenv('PASSWORD_SDS')
         logger.info(f" Login")
         await login(page, username, password)
-        await page.wait_for_selector(selectors["redenzvous"], timeout=15000)
-        await page.click(selectors["redenzvous"])
-
-        await page.wait_for_selector(selectors["popupAvisaur"], timeout=10000)
-        await page.click(selectors["chris"])
-        await page.wait_for_selector(selectors["telephoneInput"], timeout=10000)
+        logger.info(f" Pressing redenvous button")
+        await click_redenvous(page)
+        logger.info(f" Chosing avior button")
+        await chose_aviseurs(page)
         logger.info(f" Searching with telephone number: {telephone_number}")
-        await page.fill(selectors["telephoneInput"], str(telephone_number))
-        await page.keyboard.press("Enter")
+        await insert_phone_number(page, telephone_number)
         logger.info(f" Check for an existing appointment: {telephone_number}")
-        await page.wait_for_timeout(1000)
-        
         await handle_popup(page, telephone_number, car)
+        
         logger.info(" Moving to car info")
         await page.wait_for_selector(selectors["make-appointment"]["car-page"], timeout=10000)
         await page.click(selectors["make-appointment"]["next-step"])
@@ -174,7 +176,7 @@ async def making_appointment(playwright: Playwright, info: AppointmentInfo) -> s
         logger.info(" Schedule operation: chose the right transport")
         locator = page.locator(selectors["make-appointment"]["transport-input"])
         for i, transport in enumerate(transport_types):
-            if transport == transport_mode:
+            if transport == transport_mode.lower():
                 await locator.nth(i).click()
                 break
         logger.info(" Schedule operation: chose the right week")
@@ -223,7 +225,7 @@ async def making_appointment(playwright: Playwright, info: AppointmentInfo) -> s
         await page.wait_for_timeout(1500)
     except Exception as e:  
         error_message = f"An error occurred: {e}"
-        logger.critical(f"An error occurred: {e}")
+        logger.error(f"An error occurred: {e}")
     finally:
         await browser.close()
         end_time = time.time()

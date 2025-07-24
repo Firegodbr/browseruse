@@ -6,3 +6,4 @@ db.json
 db.sqlite
 __pycache__/
 logs/app.log
+TODO.md

@@ -1,0 +1,31 @@
+{
+  "oil_types": ["0W-08", "0W-16", "0W-20", "5W-30"],
+  "cylinder_types": {
+    "4.0": {
+      "0W-08": "01T4CLC8FZ",
+      "0W-16": "01T4HLS8FZ",
+      "0W-20": "01T6CLS8FZ",
+      "5W-30": "01TSYNUPGS"
+    },
+    "4-SUV": {
+      "0W-08": "01T4CLC8FZ",
+      "0W-16": "01T6CLC8FZ",
+      "0W-20": "01T6CLS8SZ",
+      "5W-30": "01TSYNUPGS"
+    },
+    "6.0": {
+      "0W-08": "01T4CLC8FZ",
+      "0W-16": "01T6CLC8FZ",
+      "0W-20": "01T6CLS8SZ",
+      "5W-30": "01TSYNUPGR"
+    },
+    "8.0": {
+      "0W-08": "01T4CLC8FZ",
+      "0W-20": "01T8TLS8SZ",
+      "5W-30": "01TSYNUPGT"
+    }
+  },
+  "defaults": {
+    "0W-20": "01T6CLS8FZ"
+  }
+}

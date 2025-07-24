@@ -1,9 +1,10 @@
 # database_ops.py
 import sqlite3
+import json
 import os
 from typing import List, Dict, Any, Optional
 
-DB_FILE = "./db.sqlite" # Using the same DB file name
+DB_FILE = "./db.sqlite"
 
 # --- Database Initialization and Default Data ---
 def create_db():
@@ -12,14 +13,9 @@ def create_db():
     try:
         conn = sqlite3.connect(DB_FILE)
         cursor = conn.cursor()
-        # SERVICE Table
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS SERVICE(
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                code VARCHAR UNIQUE NOT NULL,
-                service TEXT NOT NULL
-            )
-        ''')
+
+        # --- Existing Tables ---
+
         # TRANSPORT Table
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS TRANSPORT(
@@ -28,23 +24,47 @@ def create_db():
                 description TEXT NOT NULL
             )
         ''')
+
         # APPOINTMENTS Table
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS APPOINTMENTS(
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                service_id INTEGER,
+                service_id TEXT NOT NULL,
                 telephone VARCHAR(15) NOT NULL, 
                 transport_id INTEGER,
                 date TEXT NOT NULL, -- Expected format: YYYY-MM-DDTHH:MM:SS
                 car TEXT,
-                FOREIGN KEY (service_id) REFERENCES SERVICE(id),
                 FOREIGN KEY (transport_id) REFERENCES TRANSPORT(id)
             )
         ''')
+
         # Indexes
         cursor.execute('CREATE INDEX IF NOT EXISTS idx_telephone ON APPOINTMENTS (telephone)')
         cursor.execute('CREATE INDEX IF NOT EXISTS idx_date ON APPOINTMENTS (date)')
+
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS OilLookup (
+            model TEXT,
+            engine_type TEXT,
+            year INTEGER,
+            oil_type TEXT,
+            is_suv BOOLEAN,
+            cylinders INTEGER
+        )
+        """)
+
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS ServiceMapping (
+            oil_type TEXT,
+            is_suv BOOLEAN,
+            cylinders INTEGER,
+            service_id TEXT,
+            description TEXT
+        )
+        """)
+
         conn.commit()
+        
         print(f"Database '{DB_FILE}' initialized/verified successfully.")
     except sqlite3.Error as e:
         print(f"Database initialization error: {e}")
@@ -53,46 +73,108 @@ def create_db():
             conn.close()
 
 def add_data_default_db():
-    """Insert default data into SERVICE and TRANSPORT tables if they are empty."""
+    """Insert default data into SERVICE, TRANSPORT, and oil reference tables."""
     conn = None
+    TOYOTA_OIL_JSON = "./Toyota Oil v5.json"
+    SERVICE_ID_JSON = "./codes travail toyota.json"
+     
     try:
         conn = sqlite3.connect(DB_FILE)
         cursor = conn.cursor()
-
-        # Default Services
-        cursor.execute("SELECT COUNT(*) FROM SERVICE")
-        if cursor.fetchone()[0] == 0:
-            services_data = [
-                ("55", "Oil change"),
-                ("35", "Vehicle maintenance"),
-                ("TIRE", "Tire Rotation/Change"),
-                ("BRAKE", "Brake Inspection/Repair"),
-                ("DIAG", "Diagnostic Check")
-            ]
-            cursor.executemany("INSERT INTO SERVICE (code, service) VALUES (?, ?)", services_data)
-            print("Added default data to SERVICE table.")
-
         # Default Transport Options
         cursor.execute("SELECT COUNT(*) FROM TRANSPORT")
         if cursor.fetchone()[0] == 0:
             transport_data = [
-                ("None", "No transport needed, customer has arrangements"),
-                ("Rental", "Rental car required/arranged"),
-                ("Wait", "Customer will wait at the facility"),
-                ("Shuttle", "Shuttle service to local area"),
-                ("Drop-off", "Customer will drop off the vehicle")
+                ("aucun", "No transport needed, customer has arrangements"),
+                ("courtoisie", "Rental car required/arranged"),
+                ("attente", "Customer will wait at the facility"),
+                ("reconduire", "Shuttle service to local area"),
+                ("laisser", "Customer will drop off the vehicle")
             ]
             cursor.executemany("INSERT INTO TRANSPORT (type, description) VALUES (?, ?)", transport_data)
             print("Added default data to TRANSPORT table.")
-        
+
+        # Load and insert Toyota Oil data
+        if os.path.exists(TOYOTA_OIL_JSON) and os.path.isfile(SERVICE_ID_JSON):
+            with open(TOYOTA_OIL_JSON, "r", encoding="utf-8") as oil_json_file:
+                oil_data = json.load(oil_json_file)
+
+            with open(SERVICE_ID_JSON, "r", encoding="utf-8") as service_id_json_file:
+                service_id_data = json.load(service_id_json_file)
+
+            # Insert models, engine types, and oil types
+            for entry in oil_data:
+                model = entry["Model"]
+                engine = entry["Engine Type"]
+                is_suv = entry["Is SUV"]
+                cylinders = entry["Number of Cylinders"]
+                oil_types = entry["Oil Type"]
+                if not isinstance(oil_types, list):
+                    oil_types = [oil_types]
+                for year in entry["Years"]:
+                    for oil in oil_types:
+                        cursor.execute("""
+                            INSERT INTO OilLookup (model, engine_type, year, oil_type, is_suv, cylinders)
+                            VALUES (?, ?, ?, ?, ?, ?)
+                        """, (model.upper(), engine.upper(), year, oil.upper(), is_suv, cylinders))
+            for cyl_key, oil_map in service_id_data["cylinder_types"].items():
+            # Split to get cylinder and SUV flag
+                if "-SUV" in cyl_key:
+                    cyl = int(cyl_key.split("-")[0])
+                    is_suv = True
+                else:
+                    cyl = int(float(cyl_key))  # "6.0" → 6
+                    is_suv = False
+                for oil_type, service_id in oil_map.items():
+                    cursor.execute("""
+                        INSERT INTO ServiceMapping (oil_type, is_suv, cylinders, service_id)
+                        VALUES (?, ?, ?, ?)
+                    """, (oil_type.upper(), is_suv, cyl, service_id))
+            print("Toyota oil data added to database.")
+        else:
+            print(f"Toyota oil JSON file not found at: {TOYOTA_OIL_JSON}")
+
         conn.commit()
     except sqlite3.Error as e:
         print(f"Error adding default data: {e}")
+    except Exception as ex:
+        print(f"Unexpected error: {ex}")
     finally:
         if conn:
             conn.close()
 
 # --- Service Queries ---
+def get_oil_type(model, year, is_hybrid, cylinders):
+    conn = sqlite3.connect(DB_FILE)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    if is_hybrid:
+        query = """
+        SELECT oil_type, is_suv FROM OilLookup
+        WHERE model = ? AND year = ? AND engine_type = ? AND cylinders = ?
+        """
+        cursor.execute(query, (model.upper(), year, "HV", cylinders))
+        return [[row[0], row[1]] for row in cursor.fetchall()]
+    else:
+        query = """
+        SELECT oil_type, is_suv FROM OilLookup
+        WHERE model = ? AND year = ? AND cylinders = ?
+        """
+        cursor.execute(query, (model.upper(), year, cylinders))
+        return [[row[0], row[1]] for row in cursor.fetchall()]
+
+def get_service_id(oil_type, is_suv, cylinders):
+    conn = sqlite3.connect(DB_FILE)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    query = """
+    SELECT service_id FROM ServiceMapping
+    WHERE oil_type = ? AND is_suv = ? AND cylinders = ?
+    """
+    cursor.execute(query, (oil_type.upper(), is_suv, cylinders))
+    result = cursor.fetchone()
+    return result[0] if result else None
+
 def get_all_services_db() -> List[Dict[str, Any]]:
     conn = sqlite3.connect(DB_FILE)
     conn.row_factory = sqlite3.Row

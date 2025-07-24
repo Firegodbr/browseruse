@@ -2,14 +2,13 @@ import os, logging
 import time
 from playwright.async_api import async_playwright, Playwright, Page
 from playwright.async_api import TimeoutError as PlaywrightTimeoutError
-from .const import selectors
-
+from .const import selectors, login, insert_phone_number, chose_aviseurs, click_redenvous
 logger = logging.getLogger(__name__)
 # --- Target URL pattern for a single car page ---
 SINGLE_CAR_PAGE_URL_PATTERN = "https://toyosteu.sdswebapp.com:6819/SDSWeb/t1/appointments-qab/2"
 
 # --- Placeholder functions for actions within states (Updated handle_revision_alert) ---
-async def handle_revision_alert_and_extract_car(page: Page, alert_locator, selectors_dict: dict):
+async def handle_revision_alert_and_extract_car(page: Page, alert_locator):
     logger.info("Revision alert popup detected.")
     await page.keyboard.press("Escape")
     logger.info("Pressed 'Escape' key to dismiss revision alert.")
@@ -31,10 +30,10 @@ async def handle_revision_alert_and_extract_car(page: Page, alert_locator, selec
 async def extract_single_car_from_page(page: Page, selectors_dict: dict):
     # logger.info(f"Attempting to extract single car details from page: {page.url} (implementation needed).")
     await page.wait_for_selector(selectors_dict["singleCarInfo"])
-    car = await (await page.query_selector(selectors_dict["singleCarInfo"])).text_content()
+    car = await (await page.query_selector_all(selectors_dict["singleCarInfo"]))[5].text_content()
     return [car.strip()]
 
-async def handle_multi_cars_popup(page: Page, element_or_page, selectors_dict: dict):
+async def handle_multi_cars_popup(page: Page, element_or_page):
     results = []
     popup_cars_locator = element_or_page
     car_button_elements = await popup_cars_locator.locator(selectors["carButtons"]).all()
@@ -48,10 +47,10 @@ async def handle_multi_cars_popup(page: Page, element_or_page, selectors_dict: d
                 else: results.append(f"Car Entry {i+1} (no text)")
             except Exception as e_extract: results.append(f"Car Entry {i+1} (error: {e_extract})")
     return results
-async def handle_multi_cars_accounts_popup(page: Page, element_or_page, selectors_dict: dict):
+async def handle_multi_cars_accounts_popup(page: Page, element_or_page):
     await page.wait_for_timeout(500)
     results = []
-    popup_cars_locator = page.locator(selectors_dict["carsContainer"])
+    popup_cars_locator = page.locator(selectors["carsContainer"])
     # logger.info(await popup_cars_locator.count())
     car_button_elements = await popup_cars_locator.locator(selectors["carButtons"]).all()
     if not car_button_elements:
@@ -64,7 +63,7 @@ async def handle_multi_cars_accounts_popup(page: Page, element_or_page, selector
                 else: results.append(f"Car Entry {i+1} (no text)")
             except Exception as e_extract: results.append(f"Car Entry {i+1} (error: {e_extract})")
     return results
-async def handle_multi_account_popup(page: Page, multi_account_locator, selectors_dict: dict):
+async def handle_multi_account_popup(page: Page, multi_account_locator):
     results = []
     car_button_elements = await page.locator(selectors["clientButtonsContainerElements"]).all()
     if not car_button_elements:
@@ -73,11 +72,11 @@ async def handle_multi_account_popup(page: Page, multi_account_locator, selector
         for i, el_handle in enumerate(car_button_elements):
             try:
                 # Finding a lot of different elements in the same container that's not there
-                if await el_handle.locator(selectors_dict["clientsMultipleCarsSvg"]).is_visible():
-                    text = await el_handle.locator(selectors_dict["clientName"]).text_content()
+                if await el_handle.locator(selectors["clientsMultipleCarsSvg"]).is_visible():
+                    text = await el_handle.locator(selectors["clientName"]).text_content()
                     if text: 
-                        await el_handle.locator(selectors_dict["clientName"]).click()
-                        client = {"client":text.strip(), "cars": await handle_multi_cars_accounts_popup(page, None, selectors_dict)}
+                        await el_handle.locator(selectors["clientName"]).click()
+                        client = {"client":text.strip(), "cars": await handle_multi_cars_accounts_popup(page, None, selectors)}
                         await page.keyboard.press("Escape")
                         results.append(client)
                     # else: results.append(f"Car Entry {i+1} (no text)")
@@ -86,7 +85,7 @@ async def handle_multi_account_popup(page: Page, multi_account_locator, selector
     # return ["Multi-Account Page Detected (further action TBD)"]
     return results
 
-async def check_not_found(page: Page, timeout_ms: int = 10000):
+async def check_not_found(page: Page):
     """Check if not found is on the page
 
     Args:
@@ -97,11 +96,10 @@ async def check_not_found(page: Page, timeout_ms: int = 10000):
         tuple: (str, Locator)
     """
     await page.wait_for_timeout(500) # Brief pause
-    logger.info("Determining page state...")
     # 1. Check for immediate, high-priority overlay/error states
     try:
         not_found_loc = page.locator(selectors["notFound"])
-        if await not_found_loc.is_visible(timeout=max(1000, timeout_ms * 0.15)):
+        if await not_found_loc.is_visible(timeout=1000):
             logger.info("DEBUG: State determined: NOT_FOUND")
             return "NOT_FOUND", not_found_loc
     except PlaywrightTimeoutError: pass
@@ -163,11 +161,32 @@ async def check_popup(page: Page, max_attempts: int = 3):
 
 
 # --- Updated Function to determine page state ---
-async def determine_post_phone_entry_state(page: Page, selectors_dict: dict, timeout_ms: int = 10000):
+async def determine_post_phone_entry_state(page: Page, timeout_ms: int = 10000):
+    """
+    Determine the page state after phone entry.
+
+    This function checks for various immediate overlay/error states and navigations to determine the page state.
+    It returns a tuple containing a string describing the state and a Locator relevant to the state.
+
+    States:
+    - NOT_FOUND: Page not found error on the page.
+    - MULTI_ACCOUNT_POPUP: A popup indicating multiple accounts found.
+    - MULTIPLE_CARS_POPUP: A popup indicating multiple cars found.
+    - ONE_CAR_PAGE_WITH_REVISION_ALERT: On a single car page with a revision alert visible.
+    - ONE_CAR_PAGE_BY_URL: On a single car page URL (without revision alert visible).
+    - CLICK_FAILED: Failed to click a button to resolve an overlay/error.
+    - UNKNOWN: Exhausted all checks, current URL: {page.url}.
+
+    :param page: The Playwright Page object.
+    :param selectors_dict: A dictionary of selectors.
+    :param timeout_ms: The timeout in milliseconds (default: 10000).
+
+    :return: A tuple of (state, locator) where state is a string describing the state and locator is a Locator relevant to the state.
+    """
     await page.wait_for_timeout(500) # Brief pause
     logger.info("Determining page state...")
     # 1. Check for immediate, high-priority overlay/error states
-    state, loc = await check_not_found(page, timeout_ms)
+    state, loc = await check_not_found(page)
     if state == "NOT_FOUND": return state, loc
     
     state, loc =await check_popup(page)
@@ -198,7 +217,7 @@ async def determine_post_phone_entry_state(page: Page, selectors_dict: dict, tim
     if navigated_to_single_car_url:
         # On the single car page URL. Check for the revision alert.
         try:
-            revision_alert_loc = page.locator(selectors_dict["revisionAlertPopup"])
+            revision_alert_loc = page.locator(selectors["revisionAlertPopup"])
             if await revision_alert_loc.is_visible(timeout=2000): # Check for alert on the single car page
                 logger.info("DEBUG: State determined: ONE_CAR_PAGE_WITH_REVISION_ALERT (URL matched, alert visible)")
                 return "ONE_CAR_PAGE_WITH_REVISION_ALERT", revision_alert_loc
@@ -213,7 +232,7 @@ async def determine_post_phone_entry_state(page: Page, selectors_dict: dict, tim
     #    Check for `revisionAlertPopup` on the current (unknown) page.
     #    This implies an alert appeared without navigating to the expected single car URL.
     try:
-        revision_alert_loc = page.locator(selectors_dict["revisionAlertPopup"])
+        revision_alert_loc = page.locator(selectors["revisionAlertPopup"])
         if await revision_alert_loc.is_visible(timeout=1000):
             logger.info("WARNING: Revision alert popup visible, but NOT on the expected single car page URL.")
             # This could be a general site alert or an unexpected state.
@@ -232,7 +251,7 @@ async def get_cars_with_state_logic(playwright: Playwright, telephone_number: in
     results = []
 
     chromium = playwright.chromium
-    browser = await chromium.launch(headless=True) # Set to True for production
+    browser = await chromium.launch(headless=False) # Set to True for production
     page = await browser.new_page()
 
     try:
@@ -241,22 +260,17 @@ async def get_cars_with_state_logic(playwright: Playwright, telephone_number: in
         username = os.getenv('USERNAME_SDS')
         password = os.getenv('PASSWORD_SDS')
         if not username or not password:
-            logger.info("WARNING: USERNAME_SDS or PASSWORD_SDS environment variables not set.")
+            logger.warning("WARNING: USERNAME_SDS or PASSWORD_SDS environment variables not set.")
+        await login(page, username, password)
         
-        await page.fill(selectors["username"], username or "")
-        await page.fill(selectors["password"], password or "")
-        await page.keyboard.press("Enter")
+        await click_redenvous(page)
 
-        await page.wait_for_selector(selectors["redenzvous"], timeout=15000)
-        await page.click(selectors["redenzvous"])
-
-        await page.wait_for_selector(selectors["popupAvisaur"], timeout=10000)
-        await page.click(selectors["chris"])
-
-        await page.wait_for_selector(selectors["telephoneInput"], timeout=10000)
-        await page.fill(selectors["telephoneInput"], str(telephone_number))
-        await page.keyboard.press("Enter")
-
+        await chose_aviseurs(page)
+        
+        await insert_phone_number(page, telephone_number)
+        
+        # Waiting a moment to event to take effect
+        await page.wait_for_timeout(500)
         # IMPORTANT: Wait for page to potentially navigate/load after "Enter"
         try:
             logger.info("Waiting for page to stabilize after phone entry (networkidle)...")
@@ -268,42 +282,42 @@ async def get_cars_with_state_logic(playwright: Playwright, telephone_number: in
             logger.info(f"ERROR: during wait_for_load_state: {e}. Current URL: {page.url}. Proceeding...")
         state, element_or_page = await determine_post_phone_entry_state(page, selectors)
         logger.info(f"Determined state after phone entry: {state}")
+        match state:
+            case "NOT_FOUND":
+                not_found_message = "Not found message text TBD"
+                if element_or_page:
+                    try:
+                        not_found_message = await element_or_page.text_content(timeout=500)
+                    except Exception as e_text:
+                        logger.info(f"WARNING: Could not get text from not_found_loc: {e_text}")
+                results.append(f"Status: Not Found. Message: {not_found_message}")
 
-        if state == "NOT_FOUND":
-            not_found_message = "Not found message text TBD"
-            if element_or_page:
-                 try:
-                    not_found_message = await element_or_page.text_content(timeout=500)
-                 except Exception as e_text:
-                    logger.info(f"WARNING: Could not get text from not_found_loc: {e_text}")
-            results.append(f"Status: Not Found. Message: {not_found_message}")
-
-        elif state == "MULTIPLE_CARS_POPUP":
-            logger.info("Processing multiple cars from popup...")
-            results.extend(await handle_multi_cars_popup(page, element_or_page, selectors))
+            case "MULTIPLE_CARS_POPUP":
+                logger.info("Processing multiple cars from popup...")
+                results.extend(await handle_multi_cars_popup(page, element_or_page, selectors))
 
 
-        elif state == "ONE_CAR_PAGE_WITH_REVISION_ALERT":
-            cars_from_page = await handle_revision_alert_and_extract_car(page, element_or_page, selectors)
-            results.extend(cars_from_page)
+            case "ONE_CAR_PAGE_WITH_REVISION_ALERT":
+                cars_from_page = await handle_revision_alert_and_extract_car(page, element_or_page, selectors)
+                results.extend(cars_from_page)
 
-        elif state == "ONE_CAR_PAGE_BY_URL":
-            # `element_or_page` is the page object for BY_URL, or the specific locator for BY_SELECTOR
-            cars_from_page = await extract_single_car_from_page(page, selectors)
-            results.extend(cars_from_page)
+            case "ONE_CAR_PAGE_BY_URL":
+                # `element_or_page` is the page object for BY_URL, or the specific locator for BY_SELECTOR
+                cars_from_page = await extract_single_car_from_page(page, selectors)
+                results.extend(cars_from_page)
 
-        elif state == "MULTI_ACCOUNT_POPUP":
-            # ... (same as before)
-            account_info = await handle_multi_account_popup(page, element_or_page, selectors)
-            results.extend(account_info)
-        
-        elif state == "UNKNOWN": # Combined all other non-specific outcomes here
-            results.append(f"Status: {state}. No definitive state found. Page URL: {page.url}")
-            # screenshot_path = f"debug_screenshot_{state}_{time.strftime('%Y%m%d_%H%M%S')}.png"
-            # await page.screenshot(path=screenshot_path)
-            # logger.info(f"Screenshot saved to {screenshot_path}")
-        else: # Should ideally not be reached
-            results.append(f"Status: Unhandled state '{state}'. Page URL: {page.url}")
+            case "MULTI_ACCOUNT_POPUP":
+                # ... (same as before)
+                account_info = await handle_multi_account_popup(page, element_or_page, selectors)
+                results.extend(account_info)
+            
+            case "UNKNOWN": # Combined all other non-specific outcomes here
+                results.append(f"Status: {state}. No definitive state found. Page URL: {page.url}")
+                # screenshot_path = f"debug_screenshot_{state}_{time.strftime('%Y%m%d_%H%M%S')}.png"
+                # await page.screenshot(path=screenshot_path)
+                # logger.info(f"Screenshot saved to {screenshot_path}")
+            case _: # Should ideally not be reached
+                results.append(f"Status: Unhandled state '{state}'. Page URL: {page.url}")
 
     except PlaywrightTimeoutError as e_timeout:
         logger.info(f"CRITICAL_ERROR: Playwright Timeout Error during automation: {e_timeout}")

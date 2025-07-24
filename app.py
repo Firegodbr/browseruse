@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from api.graphql import graphql_app
-from api.scraper import router as scraper
+from api.scrapper import router as scraper
 from contextlib import asynccontextmanager
 import db.database_ops as db
 from logs.logging_config import setup_logging

@@ -1,0 +1,602 @@
+[
+  {
+    "Model": "4RUNNER",
+    "Engine Type": "V6",
+    "Number of Cylinders": 6,
+    "Years": [2003, 2004, 2005, 2006, 2007, 2008, 2009],
+    "Oil Type": "5W-30",
+    "Is SUV": true
+  },
+  {
+    "Model": "4RUNNER",
+    "Engine Type": "V8",
+    "Number of Cylinders": 8,
+    "Years": [2003, 2004, 2005, 2006, 2007, 2008, 2009],
+    "Oil Type": "5W-30",
+    "Is SUV": true
+  },
+  {
+    "Model": "4RUNNER",
+    "Engine Type": "V6",
+    "Number of Cylinders": 6,
+    "Years": [2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024],
+    "Oil Type": "0W-20",
+    "Is SUV": true
+  },
+  {
+    "Model": "4RUNNER",
+    "Engine Type": "V8",
+    "Number of Cylinders": 8,
+    "Years": [2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024],
+    "Oil Type": "0W-20",
+    "Is SUV": true
+  },
+  {
+    "Model": "AVALON",
+    "Engine Type": "V6",
+    "Number of Cylinders": 6,
+    "Years": [2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012],
+    "Oil Type": "5W-30",
+    "Is SUV": false
+  },
+  {
+    "Model": "AVALON",
+    "Engine Type": "V6",
+    "Number of Cylinders": 6,
+    "Years": [2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021],
+    "Oil Type": "0W-20",
+    "Is SUV": false
+  },
+  {
+    "Model": "AVALON",
+    "Engine Type": "L4",
+    "Number of Cylinders": 4,
+    "Years": [2021],
+    "Oil Type": "0W-16",
+    "Is SUV": false
+  },
+  {
+    "Model": "CAMRY",
+    "Engine Type": "L4",
+    "Number of Cylinders": 4,
+    "Years": [2003, 2004, 2005, 2006],
+    "Oil Type": "5W-30",
+    "Is SUV": false
+  },
+  {
+    "Model": "CAMRY",
+    "Engine Type": "L4",
+    "Number of Cylinders": 4,
+    "Years": [2007, 2008, 2009],
+    "Oil Type": ["5W-20", "0W-20"],
+    "Is SUV": false
+  },
+  {
+    "Model": "CAMRY",
+    "Engine Type": "L4",
+    "Number of Cylinders": 4,
+    "Years": [2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017],
+    "Oil Type": "0W-20",
+    "Is SUV": false
+  },
+  {
+    "Model": "CAMRY",
+    "Engine Type": "L4",
+    "Number of Cylinders": 4,
+    "Years": [2018, 2019, 2020, 2021, 2022, 2023, 2024],
+    "Oil Type": "0W-16",
+    "Is SUV": false
+  },
+  {
+    "Model": "CAMRY",
+    "Engine Type": "V6",
+    "Number of Cylinders": 6,
+    "Years": [2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011],
+    "Oil Type": "5W-30",
+    "Is SUV": false
+  },
+  {
+    "Model": "CAMRY",
+    "Engine Type": "HV",
+    "Number of Cylinders": 4,
+    "Years": [2007, 2008, 2009, 2010, 2011],
+    "Oil Type": ["5W-20", "0W-20"],
+    "Is SUV": false
+  },
+  {
+    "Model": "CAMRY",
+    "Engine Type": "HV",
+    "Number of Cylinders": 4,
+    "Years": [2012, 2013, 2014, 2015, 2016, 2017],
+    "Oil Type": "0W-20",
+    "Is SUV": false
+  },
+  {
+    "Model": "CAMRY",
+    "Engine Type": "HV",
+    "Number of Cylinders": 4,
+    "Years": [2018, 2019, 2020, 2021, 2022, 2023, 2024],
+    "Oil Type": "0W-16",
+    "Is SUV": false
+  },
+  {
+    "Model": "CAMRY",
+    "Engine Type": "HV",
+    "Number of Cylinders": 4,
+    "Years": [2025],
+    "Oil Type": "0W-8",
+    "Is SUV": false
+  },
+  {
+    "Model": "CELICA",
+    "Engine Type": "L4",
+    "Number of Cylinders": 4,
+    "Years": [2003, 2004, 2005],
+    "Oil Type": "5W-30",
+    "Is SUV": false
+  },
+  {
+    "Model": "C-HR",
+    "Engine Type": "L4",
+    "Number of Cylinders": 4,
+    "Years": [2018, 2019, 2020, 2021, 2022],
+    "Oil Type": "0W-20",
+    "Is SUV": true
+  },
+  {
+    "Model": "COROLLA",
+    "Engine Type": "1.8L, iM",
+    "Number of Cylinders": 4,
+    "Years": [2003, 2004, 2005, 2006, 2007, 2008],
+    "Oil Type": "5W-30",
+    "Is SUV": false
+  },
+  {
+    "Model": "COROLLA",
+    "Engine Type": "1.8L, iM",
+    "Number of Cylinders": 4,
+    "Years": [2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022],
+    "Oil Type": "0W-20",
+    "Is SUV": false
+  },
+  {
+    "Model": "COROLLA",
+    "Engine Type": "2.0L Sedan & HB (Prod: avant 3/23)",
+    "Number of Cylinders": 4,
+    "Years": [2020, 2021, 2022, 2023],
+    "Oil Type": "0W-16",
+    "Is SUV": false
+  },
+  {
+    "Model": "COROLLA",
+    "Engine Type": "2.0L Sedan & HB (Prod: avant 3/23)",
+    "Number of Cylinders": 4,
+    "Years": [2024, 2025],
+    "Oil Type": "0W-8",
+    "Is SUV": false
+  },
+  {
+    "Model": "COROLLA",
+    "Engine Type": "2.0L Sedan & HB (Prod: après 3/23)",
+    "Number of Cylinders": 4,
+    "Years": [2023, 2024, 2025],
+    "Oil Type": "0W-8",
+    "Is SUV": false
+  },
+  {
+    "Model": "COROLLA",
+    "Engine Type": "2.4L",
+    "Number of Cylinders": 4,
+    "Years": [2009, 2010, 2011, 2012],
+    "Oil Type": ["0W-20", "5W-20"],
+    "Is SUV": false
+  },
+  {
+    "Model": "COROLLA",
+    "Engine Type": "HV",
+    "Number of Cylinders": 4,
+    "Years": [2020, 2021, 2022, 2023, 2024],
+    "Oil Type": "0W-16",
+    "Is SUV": false
+  },
+  {
+    "Model": "COROLLA CROSS",
+    "Engine Type": "Gas",
+    "Number of Cylinders": 4,
+    "Years": [2022, 2023],
+    "Oil Type": "0W-16",
+    "Is SUV": true
+  },
+  {
+    "Model": "COROLLA CROSS",
+    "Engine Type": "Gas",
+    "Number of Cylinders": 4,
+    "Years": [2024],
+    "Oil Type": "0W-8",
+    "Is SUV": true
+  },
+  {
+    "Model": "COROLLA CROSS",
+    "Engine Type": "HV",
+    "Number of Cylinders": 4,
+    "Years": [2023, 2024],
+    "Oil Type": "0W-16",
+    "Is SUV": true
+  },
+  {
+    "Model": "GR COROLLA",
+    "Engine Type": "GR",
+    "Number of Cylinders": 3,
+    "Years": [2023, 2024],
+    "Oil Type": "0W-20",
+    "Is SUV": false
+  },
+  {
+    "Model": "CROWN SIGNIA",
+    "Engine Type": "HV 2.5L",
+    "Number of Cylinders": 4,
+    "Years": [2025],
+    "Oil Type": "0W-8",
+    "Is SUV": true
+  },
+  {
+    "Model": "CROWN",
+    "Engine Type": "2.4L",
+    "Number of Cylinders": 4,
+    "Years": [2023, 2024, 2025],
+    "Oil Type": "0W-20",
+    "Is SUV": true
+  },
+  {
+    "Model": "CROWN",
+    "Engine Type": "2.5L",
+    "Number of Cylinders": 4,
+    "Years": [2023, 2024, 2025],
+    "Oil Type": "0W-8",
+    "Is SUV": true
+  },
+  {
+    "Model": "ECHO",
+    "Engine Type": "Sedan, HB",
+    "Number of Cylinders": 4,
+    "Years": [2003, 2004, 2005],
+    "Oil Type": "5W-30",
+    "Is SUV": false
+  },
+  {
+    "Model": "FJ CRUISER",
+    "Engine Type": "V6",
+    "Number of Cylinders": 6,
+    "Years": [2007, 2008, 2009],
+    "Oil Type": "5W-30",
+    "Is SUV": true
+  },
+  {
+    "Model": "FJ CRUISER",
+    "Engine Type": "V6",
+    "Number of Cylinders": 6,
+    "Years": [2010],
+    "Oil Type": ["0W-20", "5W-20"],
+    "Is SUV": true
+  },
+  {
+    "Model": "FJ CRUISER",
+    "Engine Type": "V6",
+    "Number of Cylinders": 6,
+    "Years": [2011, 2012, 2013, 2014],
+    "Oil Type": "0W-20",
+    "Is SUV": true
+  },
+  {
+    "Model": "GR86",
+    "Engine Type": "2.0L, 2.4L",
+    "Number of Cylinders": 4,
+    "Years": [2017, 2018, 2019, 2020, 2022, 2023, 2024],
+    "Oil Type": "0W-20",
+    "Is SUV": false
+  },
+  {
+    "Model": "GRAND HIGHLANDER",
+    "Engine Type": "Gas",
+    "Number of Cylinders": 6,
+    "Years": [2024],
+    "Oil Type": "0W-20",
+    "Is SUV": true
+  },
+  {
+    "Model": "GRAND HIGHLANDER",
+    "Engine Type": "HV 2.5L",
+    "Number of Cylinders": 4,
+    "Years": [2024],
+    "Oil Type": "0W-8",
+    "Is SUV": true
+  },
+  {
+    "Model": "GRAND HIGHLANDER",
+    "Engine Type": "HV 2.4L Turbo",
+    "Number of Cylinders": 4,
+    "Years": [2024],
+    "Oil Type": "0W-20",
+    "Is SUV": true
+  },
+  {
+    "Model": "HIGHLANDER",
+    "Engine Type": "L4",
+    "Number of Cylinders": 4,
+    "Years": [2003, 2004, 2005, 2006, 2007],
+    "Oil Type": "5W-30",
+    "Is SUV": true
+  },
+  {
+    "Model": "HIGHLANDER",
+    "Engine Type": "L4",
+    "Number of Cylinders": 4,
+    "Years": [2009, 2010, 2011, 2012, 2013],
+    "Oil Type": ["5W-20", "0W-20"],
+    "Is SUV": true
+  },
+  {
+    "Model": "HIGHLANDER",
+    "Engine Type": "L4",
+    "Number of Cylinders": 4,
+    "Years": [2023, 2024],
+    "Oil Type": "0W-20",
+    "Is SUV": true
+  },
+  {
+    "Model": "HIGHLANDER",
+    "Engine Type": "V6",
+    "Number of Cylinders": 6,
+    "Years": [2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010],
+    "Oil Type": "5W-30",
+    "Is SUV": true
+  },
+  {
+    "Model": "HIGHLANDER",
+    "Engine Type": "V6",
+    "Number of Cylinders": 6,
+    "Years": [2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022],
+    "Oil Type": "0W-20",
+    "Is SUV": true
+  },
+  {
+    "Model": "HIGHLANDER",
+    "Engine Type": "HV",
+    "Number of Cylinders": 4,
+    "Years": [2006, 2007],
+    "Oil Type": "5W-30",
+    "Is SUV": true
+  },
+  {
+    "Model": "HIGHLANDER",
+    "Engine Type": "HV",
+    "Number of Cylinders": 4,
+    "Years": [2008, 2009, 2010],
+    "Oil Type": ["5W-30", "0W-20"],
+    "Is SUV": true
+  },
+  {
+    "Model": "HIGHLANDER",
+    "Engine Type": "HV",
+    "Number of Cylinders": 4,
+    "Years": [2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020],
+    "Oil Type": "0W-20",
+    "Is SUV": true
+  },
+  {
+    "Model": "HIGHLANDER",
+    "Engine Type": "HV",
+    "Number of Cylinders": 4,
+    "Years": [2021, 2022, 2023, 2024],
+    "Oil Type": "0W-16",
+    "Is SUV": true
+  },
+  {
+    "Model": "LAND CRUISER",
+    "Engine Type": "2.4L",
+    "Number of Cylinders": 4,
+    "Years": [2024],
+    "Oil Type": "0W-20",
+    "Is SUV": true
+  },
+  {
+    "Model": "MATRIX",
+    "Engine Type": "1.8L, 2.4L",
+    "Number of Cylinders": 4,
+    "Years": [2003, 2004, 2005, 2006, 2007, 2008],
+    "Oil Type": ["5W-30"],
+    "Is SUV": false
+  },
+  {
+    "Model": "MATRIX",
+    "Engine Type": "1.8L, 2.4L",
+    "Number of Cylinders": 4,
+    "Years": [2009, 2010, 2011, 2012, 2013, 2014],
+    "Oil Type": ["5W-20", "0W-20"],
+    "Is SUV": false
+  },
+  {
+    "Model": "PRIUS",
+    "Engine Type": "PRIUS",
+    "Number of Cylinders": 4,
+    "Years": [2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024],
+    "Oil Type": ["5W-30", "0W-20", "0W-16"],
+    "Is SUV": false
+  },
+  {
+    "Model": "PRIUS",
+    "Engine Type": "PRIME",
+    "Number of Cylinders": 4,
+    "Years": [2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024],
+    "Oil Type": ["0W-20", "0W-16"],
+    "Is SUV": false
+  },
+  {
+    "Model": "RAV4",
+    "Engine Type": "L4",
+    "Number of Cylinders": 4,
+    "Years": [2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024],
+    "Oil Type": ["5W-30", "5W-20", "0W-20", "0W-16"],
+    "Is SUV": true
+  },
+  {
+    "Model": "RAV4",
+    "Engine Type": "HV",
+    "Number of Cylinders": 4,
+    "Years": [2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024],
+    "Oil Type": ["5W-30", "5W-20", "0W-20", "0W-16"],
+    "Is SUV": true
+  },
+  {
+    "Model": "RAV4",
+    "Engine Type": "V6",
+    "Number of Cylinders": 6,
+    "Years": [2006, 2007, 2008, 2009, 2010, 2011, 2012],
+    "Oil Type": ["5W-30"],
+    "Is SUV": true
+  },
+  {
+    "Model": "RAV4",
+    "Engine Type": "Prime",
+    "Number of Cylinders": 4,
+    "Years": [2021, 2022, 2023, 2024],
+    "Oil Type": ["0W-16"],
+    "Is SUV": true
+  },
+  {
+    "Model": "SEQUOIA",
+    "Engine Type": "4.6L, 4.7L",
+    "Number of Cylinders": 8,
+    "Years": [2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012],
+    "Oil Type": ["5W-30", "0W-20"],
+    "Is SUV": true
+  },
+  {
+    "Model": "SEQUOIA",
+    "Engine Type": "5.7L, HV",
+    "Number of Cylinders": 8,
+    "Years": [2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025],
+    "Oil Type": ["5W-20", "0W-20"],
+    "Is SUV": true
+  },
+  {
+    "Model": "SIENNA",
+    "Engine Type": "Gas & HV",
+    "Number of Cylinders": 6,
+    "Years": [2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024],
+    "Oil Type": ["5W-30", "0W-20", "0W-16"],
+    "Is SUV": false
+  },
+  {
+    "Model": "SOLARA",
+    "Engine Type": "L4",
+    "Number of Cylinders": 4,
+    "Years": [2003, 2004, 2005, 2006, 2007, 2008],
+    "Oil Type": ["5W-30", "5W-20", "0W-20"],
+    "Is SUV": false
+  },
+  {
+    "Model": "SOLARA",
+    "Engine Type": "V6",
+    "Number of Cylinders": 6,
+    "Years": [2003, 2004, 2005, 2006, 2007, 2008],
+    "Oil Type": ["5W-30"],
+    "Is SUV": false
+  },
+  {
+    "Model": "SUPRA",
+    "Engine Type": "L4",
+    "Number of Cylinders": 4,
+    "Years": [2020, 2021, 2022, 2023, 2024, 2025],
+    "Oil Type": ["0W-20 C5"],
+    "Is SUV": false
+  },
+  {
+    "Model": "SUPRA",
+    "Engine Type": "L6",
+    "Number of Cylinders": 6,
+    "Years": [2020, 2021, 2022, 2023, 2024, 2025],
+    "Oil Type": ["0W-20 C5"],
+    "Is SUV": false
+  },
+  {
+    "Model": "TACOMA",
+    "Engine Type": "L4",
+    "Number of Cylinders": 4,
+    "Years": [2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024],
+    "Oil Type": ["5W-30", "0W-20", "5W-20"],
+    "Is SUV": false
+  },
+  {
+    "Model": "TACOMA",
+    "Engine Type": "V6",
+    "Number of Cylinders": 6,
+    "Years": [2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023],
+    "Oil Type": ["5W-30", "0W-20"],
+    "Is SUV": false
+  },
+  {
+    "Model": "TUNDRA",
+    "Engine Type": "3.4L, 4.0L, 4.7L",
+    "Number of Cylinders": 6,
+    "Years": [2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010],
+    "Oil Type": "5W-30",
+    "Is SUV": false
+  },
+  {
+    "Model": "TUNDRA",
+    "Engine Type": "3.5L, 4.6L, 5.7L",
+    "Number of Cylinders": 6,
+    "Years": [2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024],
+    "Oil Type": ["0W-20", "5W-20"],
+    "Is SUV": false
+  },
+  {
+    "Model": "TUNDRA",
+    "Engine Type": "HV",
+    "Number of Cylinders": 8,
+    "Years": [2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024],
+    "Oil Type": ["0W-20", "5W-20"],
+    "Is SUV": false
+  },
+  {
+    "Model": "VENZA",
+    "Engine Type": "L4",
+    "Number of Cylinders": 4,
+    "Years": [2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016],
+    "Oil Type": ["0W-20", "5W-20"],
+    "Is SUV": true
+  },
+  {
+    "Model": "VENZA",
+    "Engine Type": "V6",
+    "Number of Cylinders": 6,
+    "Years": [2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016],
+    "Oil Type": ["0W-20"],
+    "Is SUV": true
+  },
+  {
+    "Model": "VENZA",
+    "Engine Type": "HV",
+    "Number of Cylinders": 4,
+    "Years": [2021, 2022, 2023, 2024],
+    "Oil Type": ["0W-16"],
+    "Is SUV": true
+  },
+  {
+    "Model": "YARIS",
+    "Engine Type": "HB",
+    "Number of Cylinders": 4,
+    "Years": [2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019],
+    "Oil Type": ["5W-30"],
+    "Is SUV": false
+  },
+  {
+    "Model": "YARIS",
+    "Engine Type": "Sedan",
+    "Number of Cylinders": 4,
+    "Years": [2007, 2008, 2009, 2010, 2011, 2012, 2016, 2017, 2018, 2019, 2020],
+    "Oil Type": ["5W-30", "0W-20"],
+    "Is SUV": false
+  }
+]

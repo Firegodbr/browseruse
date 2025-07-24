@@ -1,6 +1,5 @@
-from scrapers.getCar import get_cars
-from scrapers.makeAppointment import make_appointment_scrape
-from helpers.function import normalize_canadian_number
+from scrapers.getCarScrapper import GetCarScrapper
+from scrapers.modelAppointmentScrapper import MakeAppointmentScrapper
 from fastapi import APIRouter, HTTPException, Query
 from models.schemas import AppointmentInfo, CarInfoResponse, AppointmentResponse
 import logging
@@ -15,9 +14,8 @@ async def get_car_info_api(telephone: str = Query(..., example="5142069161", des
     """
     if not telephone.strip():
         raise HTTPException(status_code=400, detail="Telephone number is required")
-
-    normalized_tel = normalize_canadian_number(telephone)
-    result = await get_cars(normalized_tel)
+    scrapper = GetCarScrapper(telephone)
+    result = await scrapper.get_cars()
     return CarInfoResponse(message=result)
 
 @router.post("/make_appointment", summary="Make a car appointment in SDSweb")
@@ -25,5 +23,6 @@ async def make_appointment_api(info: AppointmentInfo):
     """
     API endpoint to make appointments.
     """
-    message = await make_appointment_scrape(info) 
+    scrapper = MakeAppointmentScrapper(info)
+    message = await scrapper.makeAppointment()
     return AppointmentResponse(message=message)

@@ -4,6 +4,8 @@ from typing import List, Optional
 import logging
 # Import database operations
 import db.database_ops as db
+from scrapers.makeAppointment import make_appointment_scrape
+from models.schemas import AppointmentInfoQL
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -19,11 +21,18 @@ class ServiceType:
     code: str
     service: str
 
+
 @strawberry.type
 class TransportType:
     id: strawberry.ID
     type: str
     description: str
+
+
+@strawberry.type
+class ServiceResult:
+    service_id: List[str]
+
 
 @strawberry.type
 class AppointmentType:
@@ -54,6 +63,8 @@ class AppointmentType:
         return None
 
 # Custom constructor for AppointmentType to handle DB dictionary
+
+
 def appointment_from_db(db_row: dict) -> AppointmentType:
     return AppointmentType(
         id=strawberry.ID(str(db_row['id'])),
@@ -61,18 +72,10 @@ def appointment_from_db(db_row: dict) -> AppointmentType:
         date=db_row['date'],
         car=db_row.get('car'),
         # Store these for resolver use, Strawberry doesn't automatically pass non-field attributes
-        service_id=db_row.get('service_id'), 
+        service_id=db_row.get('service_id'),
         transport_id=db_row.get('transport_id')
     )
 
-
-@strawberry.input
-class AddAppointmentInput:
-    telephone: str
-    date: str # Expected format: YYYY-MM-DDTHH:MM:SS
-    car: str
-    service_code: str # e.g., "35"
-    transport_type: str # e.g., "None"
 
 # --- Strawberry Query Definition ---
 @strawberry.type
@@ -81,18 +84,11 @@ class Query:
     def all_services(self) -> List[ServiceType]:
         services_data = db.get_all_services_db()
         return [ServiceType(id=strawberry.ID(str(s['id'])), code=s['code'], service=s['service']) for s in services_data]
-    
+
     @strawberry.field
     def all_dates(self) -> List[ServiceType]:
         services_data = db.get_all_date_db()
         return [ServiceType(id=strawberry.ID(str(s['id'])), date=s['date']) for s in services_data]
-
-    @strawberry.field
-    def service_by_code(self, code: str) -> Optional[ServiceType]:
-        s = db.get_service_by_code_db(code)
-        if s:
-            return ServiceType(id=strawberry.ID(str(s['id'])), code=s['code'], service=s['service'])
-        return None
 
     @strawberry.field
     def all_transport_options(self) -> List[TransportType]:
@@ -105,18 +101,17 @@ class Query:
         if t:
             return TransportType(id=strawberry.ID(str(t['id'])), type=t['type'], description=t['description'])
         return None
-        
+
     @strawberry.field
     def appointments_by_telephone(self, telephone: str) -> List[AppointmentType]:
         appts_data = db.get_appointments_by_telephone_db(telephone)
         # Need to map db_row to AppointmentType and ensure service_id/transport_id are passed
         return [appointment_from_db(appt) for appt in appts_data]
 
-
     @strawberry.field
     def all_appointment_date_times(self) -> List[str]:
         return db.get_all_appointment_datetimes_db()
-    
+
     @strawberry.field
     def appointment_by_id(self, id: strawberry.ID) -> Optional[AppointmentType]:
         appt_data = db.get_appointment_by_id_db(int(id))
@@ -124,25 +119,58 @@ class Query:
             return appointment_from_db(appt_data)
         return None
 
+    @strawberry.field(name="getServiceIdFromCarInfo")
+    def get_service_id_from_car_info(
+        self,
+        model: str,
+        year: int,
+        is_hybrid: bool,
+        cylinders: int
+    ) -> ServiceResult:
+        oil_suv_types = db.get_oil_type(model, year, is_hybrid, cylinders)
+        results = []
+
+        for oil, is_suv in oil_suv_types:
+            service_id = db.get_service_id(oil, is_suv, cylinders)
+            results.append(service_id)
+        if not results:
+            return ServiceResult(service_id=['01T6CLS8FZ'])
+        else:
+            return ServiceResult(service_id=list(set(results)))
+
 # --- Strawberry Mutation Definition ---
 @strawberry.type
 class Mutation:
     @strawberry.mutation
-    def add_appointment(self, input: AddAppointmentInput) -> Optional[AppointmentType]:
+    async def add_appointment(self, input: AppointmentInfoQL) -> Optional[AppointmentType]:
+        # Step 1: Prepare the appointment data (the same as input)
         details = {
             "telephone": input.telephone,
             "date": input.date,
             "car": input.car,
-            "service_code": input.service_code,
-            "transport_type": input.transport_type,
+            "service_code": input.service_id,
+            "transport_type": str(input.transport_mode.lower()),
         }
+        print("Details:", details)
+        # Step 2: Insert the appointment into the database
         new_appointment_id = db.add_appointment_db(details)
-        print("New appointment ID: ",new_appointment_id)
+
         if new_appointment_id:
-            # Fetch the newly created appointment to return its full details
+            # Step 3: Fetch the newly created appointment details
             new_appt_data = db.get_appointment_by_id_db(new_appointment_id)
             if new_appt_data:
-                return appointment_from_db(new_appt_data)
+                # Convert the DB data to the GraphQL AppointmentType
+                appointment = appointment_from_db(new_appt_data)
+
+                # Step 4: Perform the scraping operation to make the appointment
+                # Directly passing the input object
+                result = await make_appointment_scrape(input)
+
+                # Optionally, process the result further here (e.g., log, update DB status)
+                print(f"Appointment scrape result: {result}")
+
+                return appointment
+
         return None
 
     @strawberry.mutation
