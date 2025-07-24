@@ -340,7 +340,7 @@ class GetCarScrapper(Scrapper):
 
         chromium = playwright.chromium
         # Set to True for production
-        browser = await chromium.launch(headless=False)
+        browser = await chromium.launch(headless=True)
         self.page = await browser.new_page()
 
         try:

@@ -143,7 +143,7 @@ class MakeAppointmentScrapper(Scrapper):
         transport_mode = self.config.transport_mode
         chromium = playwright.chromium
         # Set to True for production
-        browser = await chromium.launch(headless=False, args=["--start-maximized"])
+        browser = await chromium.launch(headless=True, args=["--start-maximized"])
         self.page = await browser.new_page(viewport={"width": 1920, "height": 1080})
 
         error_message = None
