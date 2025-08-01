@@ -39,7 +39,11 @@ selectors = {
         "finalize-qppointment": "div[cy='finalize-default-step']",
         "time-table": "div[data-testid='virtuoso-item-list']",
         "time-scrooler": "div.KL-Card-cardContentNoScroll.css-ccyqm.e1bwztlu12 div div[data-testid='virtuoso-scroller']",
-        "transport-input": "input.PrivateSwitchBase-input[type='radio']"
+        "transport-input": "input.PrivateSwitchBase-input[type='radio']",
+        "time-availability": "div.css-122qvno.e1ri7uk73 div.e1ri7uk72.KL-Tile-root.css-fif1n0.e1d32nym9",
+        "not-available": "div.css-122qvno.e1ri7uk73 div.e1ri7uk72.KL-Tile-root.KL-Tile-disabled.css-4b2f9a.e1d32nym9",
+        "time": "div.css-122qvno.e1ri7uk73",
+        "week":"div.MuiTypography-root.MuiTypography-body2.MuiTypography-alignLeft.e1wi0epg0.css-8gqjsk.e1de0imv0"
     },
 }
 transport_types = ["aucun", "courtoisie", "attente", "reconduire", "laisser"]

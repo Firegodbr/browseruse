@@ -2,8 +2,8 @@ from .scrapper import Scrapper
 import logging
 import os
 from playwright.async_api import Playwright
-from dotenv import load_dotenv
 from models.schemas import AppointmentInfo
+from dotenv import load_dotenv
 from datetime import datetime, timedelta
 load_dotenv(override=True)
 

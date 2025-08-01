@@ -4,29 +4,32 @@ import os
 from colorlog import ColoredFormatter
 
 def setup_logging(log_file_path="logs/app.log", level=logging.DEBUG):
-    # Create logs directory if it doesn't exist
     os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
 
-    # Define color formatter for console output
     console_formatter = ColoredFormatter(
-        "%(log_color)s[%(levelname)s] %(asctime)s - %(name)s - %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-        log_colors={
-            'DEBUG':    'cyan',
-            'INFO':     'blue',
-            'WARNING':  'yellow',
-            'ERROR':    'red',
-            'CRITICAL': 'bold_red',
-        }
+    "%(log_color)s[%(levelname)s] %(asctime)s | %(name)s | %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+    log_colors={
+        'DEBUG': 'cyan',
+        'INFO': 'blue',
+        'WARNING': 'yellow',
+        'ERROR': 'red',
+        'CRITICAL': 'bold_red',
+    },
+    style='%'
     )
 
-    # Define plain formatter for file output
+
+
+
+
+    # Plain formatter for file
     file_formatter = logging.Formatter(
-        "[%(levelname)s] %(asctime)s - %(name)s - %(message)s",
+        "\n========== %(levelname)s ==========\n%(asctime)s | %(name)s\n%(message)s\n",
         datefmt="%Y-%m-%d %H:%M:%S"
     )
 
-    # Stream (console) handler
+    # Stream handler for console
     console_handler = logging.StreamHandler()
     console_handler.setFormatter(console_formatter)
 
@@ -34,15 +37,14 @@ def setup_logging(log_file_path="logs/app.log", level=logging.DEBUG):
     file_handler = logging.FileHandler(log_file_path)
     file_handler.setFormatter(file_formatter)
 
-    # Get root logger
+    # Get and configure the root logger
     logger = logging.getLogger()
     logger.setLevel(level)
 
-    # Clear existing handlers if any (avoid duplication)
+    # Clear previous handlers
     if logger.hasHandlers():
         logger.handlers.clear()
 
-    # Add both handlers
     logger.addHandler(console_handler)
     logger.addHandler(file_handler)
 
