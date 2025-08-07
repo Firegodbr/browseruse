@@ -2,7 +2,8 @@ from fastapi import FastAPI
 from api.graphql import graphql_app
 from api.scrapper import router as scraper
 from contextlib import asynccontextmanager
-import db.database_ops as db
+import db.database_ops as db_ops
+import db.database_availability as db_availability
 from logs.logging_config import setup_logging
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
@@ -27,8 +28,9 @@ async def lifespan(app: FastAPI):
     """
 
     print("Application startup: Initializing database...")
-    db.create_db()
-    db.add_data_default_db() # Add default service/transport if not present
+    db_ops.create_db()
+    db_ops.add_data_default_db() # Add default service/transport if not present
+    db_availability.create_db_if_not_exists()
     print("Database initialized.")
     yield
     # Code to run on shutdown (if any)

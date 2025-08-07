@@ -145,7 +145,6 @@ class MakeAppointmentScrapper(Scrapper):
         # Set to True for production
         browser = await chromium.launch(headless=True, args=["--start-maximized"])
         self.page = await browser.new_page(viewport={"width": 1920, "height": 1080})
-
         error_message = None
         try:
             await self.page.goto(f"{os.getenv("SDS_URL")}/login", wait_until="networkidle")
@@ -232,8 +231,13 @@ class MakeAppointmentScrapper(Scrapper):
                 " Schedule operation: chose the correct transport mode")
 
             await self.page.type(self.selectors["make-appointment"]["taken-by"], "5543")
-            await self.page.click("body")
-            await self.page.click(self.selectors["make-appointment"]["finalize-qppointment"])
+            await self.page.click(self.selectors["make-appointment"]["taken-by"])
+            try:
+                await self.page.wait_for_selector(self.selectors["make-appointment"]["finalize-qppointment"], timeout=10000)
+                await self.page.click(self.selectors["make-appointment"]["finalize-qppointment"], timeout=10000)
+            except Exception as e:
+                logger.error(f"An error occurred: {e}")
+                error_message = "Appotintment was unable to be made on the last step. Please try again later with another time perhaps."
             # await page.wait_for_timeout(100000)
             logger.info(" Appointment made successfully")
             await self.page.wait_for_timeout(1500)

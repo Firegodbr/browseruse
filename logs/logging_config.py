@@ -47,5 +47,6 @@ def setup_logging(log_file_path="logs/app.log", level=logging.DEBUG):
 
     logger.addHandler(console_handler)
     logger.addHandler(file_handler)
+    logging.getLogger('sqlalchemy.engine.Engine').setLevel(logging.WARNING)
 
     return logging.getLogger(__name__)

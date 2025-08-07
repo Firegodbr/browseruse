@@ -7,3 +7,5 @@ db.sqlite
 __pycache__/
 logs/app.log
 TODO.md
+*.sqlite-shm
+*.sqlite-wal

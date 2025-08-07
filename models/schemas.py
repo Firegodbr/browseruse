@@ -26,7 +26,9 @@ class AppointmentInfo(BaseModel):
     date: str = Field(..., example="2026-05-04T15:00:00", description="Appointment date and time")
     transport_mode: TransportModeEnum
 
-
+class AppointmentAvailabilityApi(BaseModel):
+    timeframe: str
+    days: List[str]
 class AppointmentAvailability(BaseModel):
     telephone: str
     timeframe: str

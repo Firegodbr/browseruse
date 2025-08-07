@@ -81,45 +81,49 @@ class AvailabilityScrapper(Scrapper):
         start_timeframe, end_timeframe = self.timeframe_index(
             self.config.timeframe)
         number_of_timeframes = end_timeframe - start_timeframe + 1
-
+        scroll_direction = -100 if start_timeframe <= 10 else 100
         retries = 0
         found = False
 
-        logger.info(
-            f"Checking availability for timeframe indices: {start_timeframe} to {end_timeframe}")
+        logger.info(f"Checking availability for timeframe indices: {start_timeframe} to {end_timeframe}")
         scroll_amount = 0
+        
+        # Handle case where start and end timeframe are the same
+        if start_timeframe == end_timeframe:
+            logger.debug(f"Start and End timeframes are the same. Forcing small scroll to ensure proper visibility.")
+            await self.scroll_by(scroll_direction)
+
         while not found and retries < self.MAX_RETRIES:
             locator = self.page.locator(f"div[data-index='{start_timeframe}']")
             if await locator.count() > 0:
                 try:
                     await locator.scroll_into_view_if_needed()
                     found = True
-                    logger.info(
-                        f"Time slot element at index {start_timeframe} found after {retries} retries.")
+                    logger.info(f"Time slot element at index {start_timeframe} found after {retries} retries.")
                     break
                 except Exception as e:
-                    logger.warning(
-                        f"Element found but failed to scroll. Error: {e}")
+                    logger.warning(f"Element found but failed to scroll. Error: {e}")
             else:
-                logger.debug(
-                    f"Element at index {start_timeframe} not found. Retrying scroll...")
-            await self.scroll_by(200)
-            scroll_amount += 200
-            await self.page.wait_for_timeout(self.RETRY_DELAY_MS)
+                logger.debug(f"Element at index {start_timeframe} not found. Retrying scroll...")
+
+            await self.scroll_by(scroll_direction)
+            scroll_amount += scroll_direction
             retries += 1
 
         if not found:
-            raise Exception(
-                f"Time slot element not found after {self.MAX_RETRIES} retries.")
+            raise Exception(f"Time slot element not found after {self.MAX_RETRIES} retries.")
+        
         logger.info(f"Time slot element found at index {start_timeframe}.")
         return start_timeframe, end_timeframe, number_of_timeframes, scroll_amount
+
     async def scroll_to_timeframe_index(self, target_index: int) -> tuple[int, int]:
-    # Use the container where scrolling *actually* happens (often parent)
+        # Use the container where scrolling *actually* happens (often parent)
         item_list = self.page.locator("div[data-testid='virtuoso-item-list']")
         scroll_step = 300
         max_attempts = 60
         first_index = None
         last_index = None
+
         for attempt in range(max_attempts):
             # Check if target index is rendered yet
             target_locator = self.page.locator(
@@ -144,6 +148,11 @@ class AvailabilityScrapper(Scrapper):
             first_index = int(first_index_str)
             last_index = int(last_index_str)
 
+            # If the target index is the same as first or last, force a small scroll to revalidate
+            if target_index == first_index or target_index == last_index:
+                logger.debug(f"Target index {target_index} matches first/last. Forcing small scroll.")
+                await self.scroll_by(scroll_step)  # Small scroll to refresh the container
+
             if target_index > last_index:
                 direction = "down"
                 await self.scroll_by(scroll_step)
@@ -160,8 +169,8 @@ class AvailabilityScrapper(Scrapper):
             await self.page.wait_for_timeout(250)
 
         raise Exception(f"X Failed to scroll to target index {target_index} after {max_attempts} attempts.")
-
-
+    def format_time(self, time_str: str) -> str:
+        return len(time_str.split(":")[0]) == 1 and f"0{time_str}" or time_str
     async def check_availability(self, start_timeframe: int, number_of_timeframes: int) -> dict:
         availability = {day: {} for day in self.config.days}
         print(f"Checking availability from index {start_timeframe} for {number_of_timeframes} slots")
@@ -201,7 +210,7 @@ class AvailabilityScrapper(Scrapper):
                         else:
                             text = None
                         logger.debug(f"{day_name} @ index {time}: {text}")
-                        availability[day_name][time] = text != None
+                        availability[day_name][self.format_time(time)] = text != None
                     else:
                         text = None
                         logger.warning(f"Time not found")
@@ -214,8 +223,10 @@ class AvailabilityScrapper(Scrapper):
 
     async def check_calendar(self) -> dict:
         result = {}
+        await self.page.wait_for_timeout(1000)
         # Keep scroll_to_time just to compute indices
         start_timeframe, end_timeframe, number_of_timeframes, _ = await self.scroll_to_time()
+        print(f"Checking availability from index {start_timeframe} for {number_of_timeframes} slots")
         for _ in range(self.config.number_of_weeks):
             week = await self.page.query_selector(self.selectors["make-appointment"]["week"])
             result[await week.text_content()] = await self.check_availability(
@@ -227,10 +238,10 @@ class AvailabilityScrapper(Scrapper):
         return result
 
     async def scrapper(self, playwright: Playwright):
-        results = []
+        results = {}
         chromium = playwright.chromium
         # Set to True for production
-        browser = await chromium.launch(headless=False)
+        browser = await chromium.launch(headless=True)
         self.page = await browser.new_page()
 
         try:
@@ -265,7 +276,6 @@ class AvailabilityScrapper(Scrapper):
             logger.info("Verifying availability")
             await self.page.wait_for_selector(self.selectors["make-appointment"]["calender-next"], timeout=30000)
             results = await self.check_calendar()
-            await self.page.wait_for_timeout(5000)
 
         except Exception as e:
             print(f"An error occurred: {e}")
