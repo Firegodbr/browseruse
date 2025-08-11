@@ -1,404 +1,358 @@
 # database_ops.py
-import sqlite3
+
+from pathlib import Path
+from sqlmodel import SQLModel, Field, create_engine, Session, Relationship, select
+from typing import Optional, List, Dict, Any
 import json
+import sqlite3
 import os
-from typing import List, Dict, Any, Optional
 
 DB_FILE = "./db.sqlite"
+DATABASE_URL = f"sqlite:///{DB_FILE}"
+engine = create_engine(DATABASE_URL, echo=False)
+def get_session():
+    return Session(engine)
+# --- SQLModel Models ---
 
-# --- Database Initialization and Default Data ---
+
+class Transport(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    type: str = Field(index=True, unique=True, max_length=25)
+    description: str
+
+    appointments: List["Appointment"] = Relationship(
+        back_populates="transport")
+
+
+class Appointment(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    service_id: str
+    telephone: str = Field(index=True, max_length=15)
+    transport_id: Optional[int] = Field(
+        default=None, foreign_key="transport.id")
+    date: str = Field(index=True)  # ISO format: YYYY-MM-DDTHH:MM:SS
+    car: Optional[str] = None
+
+    transport: Optional[Transport] = Relationship(
+        back_populates="appointments")
+
+
+class OilLookup(SQLModel, table=True):
+    id: int = Field(default=None, primary_key=True, )
+    model: str
+    engine_type: str
+    year: int
+    oil_type: str
+    is_suv: bool
+    cylinders: int
+
+
+class ServiceMapping(SQLModel, table=True):
+    id: int = Field(default=None, primary_key=True, )
+    oil_type: str
+    is_suv: bool
+    cylinders: int
+    service_id: str
+    processing_time_min: int
+    description: str
+
+
+# --- DB Initialization Function ---
 def create_db():
-    """Initiate the DB and tables if they don't exist."""
-    conn = None
-    try:
-        conn = sqlite3.connect(DB_FILE)
-        cursor = conn.cursor()
+    """
+    Creates the SQLite database and initializes tables using SQLModel.
+    Equivalent to the original sqlite3 schema creation.
+    """
+    if not os.path.exists(DB_FILE):
+        print("Creating new database...")
+    else:
+        print("Verifying/Updating existing database...")
 
-        # --- Existing Tables ---
+    SQLModel.metadata.create_all(engine)
+    print(f"Database '{DB_FILE}' initialized/verified successfully.")
 
-        # TRANSPORT Table
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS TRANSPORT(
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                type VARCHAR(25) UNIQUE NOT NULL, 
-                description TEXT NOT NULL
-            )
-        ''')
-
-        # APPOINTMENTS Table
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS APPOINTMENTS(
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                service_id TEXT NOT NULL,
-                telephone VARCHAR(15) NOT NULL, 
-                transport_id INTEGER,
-                date TEXT NOT NULL, -- Expected format: YYYY-MM-DDTHH:MM:SS
-                car TEXT,
-                FOREIGN KEY (transport_id) REFERENCES TRANSPORT(id)
-            )
-        ''')
-
-        # Indexes
-        cursor.execute('CREATE INDEX IF NOT EXISTS idx_telephone ON APPOINTMENTS (telephone)')
-        cursor.execute('CREATE INDEX IF NOT EXISTS idx_date ON APPOINTMENTS (date)')
-
-        cursor.execute("""
-        CREATE TABLE IF NOT EXISTS OilLookup (
-            model TEXT,
-            engine_type TEXT,
-            year INTEGER,
-            oil_type TEXT,
-            is_suv BOOLEAN,
-            cylinders INTEGER
-        )
-        """)
-
-        cursor.execute("""
-        CREATE TABLE IF NOT EXISTS ServiceMapping (
-            oil_type TEXT,
-            is_suv BOOLEAN,
-            cylinders INTEGER,
-            service_id TEXT,
-            description TEXT
-        )
-        """)
-
-        conn.commit()
-        
-        print(f"Database '{DB_FILE}' initialized/verified successfully.")
-    except sqlite3.Error as e:
-        print(f"Database initialization error: {e}")
-    finally:
-        if conn:
-            conn.close()
 
 def add_data_default_db():
-    """Insert default data into SERVICE, TRANSPORT, and oil reference tables."""
-    conn = None
-    TOYOTA_OIL_JSON = "./Toyota Oil v5.json"
-    SERVICE_ID_JSON = "./codes travail toyota.json"
-     
+    """Insert default data into SERVICE, TRANSPORT, and oil reference tables using SQLModel."""
+    TOYOTA_OIL_JSON = Path("./Toyota Oil v5.json")
+    SERVICE_ID_JSON = Path("./codes travail toyota.json")
+
     try:
-        conn = sqlite3.connect(DB_FILE)
-        cursor = conn.cursor()
-        # Default Transport Options
-        cursor.execute("SELECT COUNT(*) FROM TRANSPORT")
-        if cursor.fetchone()[0] == 0:
-            transport_data = [
-                ("aucun", "No transport needed, customer has arrangements"),
-                ("courtoisie", "Rental car required/arranged"),
-                ("attente", "Customer will wait at the facility"),
-                ("reconduire", "Shuttle service to local area"),
-                ("laisser", "Customer will drop off the vehicle")
-            ]
-            cursor.executemany("INSERT INTO TRANSPORT (type, description) VALUES (?, ?)", transport_data)
-            print("Added default data to TRANSPORT table.")
+        with get_session() as session:
+            # --- Add Default Transport Options ---
+            # existing_transport = session.exec(select(Transport)).first()
+            # if not existing_transport:
+            #     transport_data = [
+            #         Transport(
+            #             type="aucun", description="No transport needed, customer has arrangements"),
+            #         Transport(type="courtoisie",
+            #                   description="Rental car required/arranged"),
+            #         Transport(type="attente",
+            #                   description="Customer will wait at the facility"),
+            #         Transport(type="reconduire",
+            #                   description="Shuttle service to local area"),
+            #         Transport(type="laisser",
+            #                   description="Customer will drop off the vehicle"),
+            #     ]
+            #     session.add_all(transport_data)
+            #     print("Added default data to TRANSPORT table.")
 
-        # Load and insert Toyota Oil data
-        if os.path.exists(TOYOTA_OIL_JSON) and os.path.isfile(SERVICE_ID_JSON):
-            with open(TOYOTA_OIL_JSON, "r", encoding="utf-8") as oil_json_file:
-                oil_data = json.load(oil_json_file)
+            # --- Load and insert Toyota Oil data ---
+            if TOYOTA_OIL_JSON.exists() and SERVICE_ID_JSON.exists():
+                with TOYOTA_OIL_JSON.open("r", encoding="utf-8") as f:
+                    oil_data = json.load(f)
 
-            with open(SERVICE_ID_JSON, "r", encoding="utf-8") as service_id_json_file:
-                service_id_data = json.load(service_id_json_file)
+                with SERVICE_ID_JSON.open("r", encoding="utf-8") as f:
+                    service_id_data = json.load(f)
 
-            # Insert models, engine types, and oil types
-            for entry in oil_data:
-                model = entry["Model"]
-                engine = entry["Engine Type"]
-                is_suv = entry["Is SUV"]
-                cylinders = entry["Number of Cylinders"]
-                oil_types = entry["Oil Type"]
-                if not isinstance(oil_types, list):
-                    oil_types = [oil_types]
-                for year in entry["Years"]:
-                    for oil in oil_types:
-                        cursor.execute("""
-                            INSERT INTO OilLookup (model, engine_type, year, oil_type, is_suv, cylinders)
-                            VALUES (?, ?, ?, ?, ?, ?)
-                        """, (model.upper(), engine.upper(), year, oil.upper(), is_suv, cylinders))
-            for cyl_key, oil_map in service_id_data["cylinder_types"].items():
-            # Split to get cylinder and SUV flag
-                if "-SUV" in cyl_key:
-                    cyl = int(cyl_key.split("-")[0])
-                    is_suv = True
-                else:
-                    cyl = int(float(cyl_key))  # "6.0" → 6
-                    is_suv = False
-                for oil_type, service_id in oil_map.items():
-                    cursor.execute("""
-                        INSERT INTO ServiceMapping (oil_type, is_suv, cylinders, service_id)
-                        VALUES (?, ?, ?, ?)
-                    """, (oil_type.upper(), is_suv, cyl, service_id))
-            print("Toyota oil data added to database.")
-        else:
-            print(f"Toyota oil JSON file not found at: {TOYOTA_OIL_JSON}")
+                # Insert into OilLookup
+                for entry in oil_data:
+                    model = entry["Model"]
+                    engine = entry["Engine Type"]
+                    is_suv = entry["Is SUV"]
+                    cylinders = entry["Number of Cylinders"]
+                    oil_types = entry["Oil Type"]
+                    if not isinstance(oil_types, list):
+                        oil_types = [oil_types]
+                    for year in entry["Years"]:
+                        for oil in oil_types:
+                            oil_entry = OilLookup(
+                                model=model.upper(),
+                                engine_type=engine.upper(),
+                                year=year,
+                                oil_type=oil.upper(),
+                                is_suv=is_suv,
+                                cylinders=cylinders
+                            )
+                            session.add(oil_entry)
 
-        conn.commit()
-    except sqlite3.Error as e:
-        print(f"Error adding default data: {e}")
+                # Insert into ServiceMapping
+                for cyl_key, oil_map in service_id_data["cylinder_types"].items():
+                    if "-SUV" in cyl_key:
+                        cyl = int(cyl_key.split("-")[0])
+                        is_suv = True
+                    else:
+                        cyl = int(float(cyl_key))  # e.g., "6.0" → 6
+                        is_suv = False
+
+                    for oil_type, service_info in oil_map.items():
+                        try:
+                            service_id = service_info["id"]
+                            processing_time = int(
+                                service_info["process-time-minutes"])
+                        except (KeyError, TypeError, ValueError) as e:
+                            print(
+                                f"Error parsing service info for {cyl_key} / {oil_type}: {e}")
+                            continue
+
+                        service_mapping = ServiceMapping(
+                            oil_type=oil_type.upper(),
+                            is_suv=is_suv,
+                            cylinders=cyl,
+                            service_id=service_id,
+                            processing_time_min=processing_time,
+                            description=""  # Optional: add description logic here if needed
+                        )
+                        session.add(service_mapping)
+
+                print("Toyota oil data added to database.")
+            else:
+                print(
+                    f"JSON file(s) not found: {TOYOTA_OIL_JSON} or {SERVICE_ID_JSON}")
+
+            session.commit()
     except Exception as ex:
-        print(f"Unexpected error: {ex}")
-    finally:
-        if conn:
-            conn.close()
+        print(f"Error adding default data: {ex}")
+    print("Default data added to database.")
 
 # --- Service Queries ---
 def get_oil_type(model, year, is_hybrid, cylinders):
-    conn = sqlite3.connect(DB_FILE)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-    if is_hybrid:
-        query = """
-        SELECT oil_type, is_suv FROM OilLookup
-        WHERE model = ? AND year = ? AND engine_type = ? AND cylinders = ?
-        """
-        cursor.execute(query, (model.upper(), year, "HV", cylinders))
-        return [[row[0], row[1]] for row in cursor.fetchall()]
-    else:
-        query = """
-        SELECT oil_type, is_suv FROM OilLookup
-        WHERE model = ? AND year = ? AND cylinders = ?
-        """
-        cursor.execute(query, (model.upper(), year, cylinders))
-        return [[row[0], row[1]] for row in cursor.fetchall()]
+    with get_session() as session:
+        stmt = select(OilLookup.oil_type, OilLookup.is_suv).where(
+            OilLookup.model == model.upper(),
+            OilLookup.year == year,
+            OilLookup.cylinders == cylinders
+        )
+        if is_hybrid:
+            stmt = stmt.where(OilLookup.engine_type == "HV")
+
+        results = session.exec(stmt).all()
+        return [[oil_type, is_suv] for oil_type, is_suv in results]
+
 
 def get_service_id(oil_type, is_suv, cylinders):
-    conn = sqlite3.connect(DB_FILE)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-    query = """
-    SELECT service_id FROM ServiceMapping
-    WHERE oil_type = ? AND is_suv = ? AND cylinders = ?
-    """
-    cursor.execute(query, (oil_type.upper(), is_suv, cylinders))
-    result = cursor.fetchone()
-    return result[0] if result else None
+    with get_session() as session:
+        stmt = select(ServiceMapping.service_id, ServiceMapping.processing_time_min).where(
+            ServiceMapping.oil_type == oil_type.upper(),
+            ServiceMapping.is_suv == is_suv,
+            ServiceMapping.cylinders == cylinders
+        )
+        result = session.exec(stmt).first()
+        return result if result else None
+
 
 def get_all_services_db() -> List[Dict[str, Any]]:
-    conn = sqlite3.connect(DB_FILE)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-    cursor.execute("SELECT id, code, service FROM SERVICE ORDER BY code")
-    services = [dict(row) for row in cursor.fetchall()]
-    conn.close()
-    return services
+    with get_session() as session:
+        services = session.exec(
+            select(ServiceMapping).order_by(ServiceMapping.service_id)).all()
+        return [service.dict() for service in services]
+
 
 def get_all_date_db() -> List[Dict[str, Any]]:
-    conn = sqlite3.connect(DB_FILE)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-    cursor.execute("SELECT id, date FROM APPOINTMENTS")
-    services = [dict(row) for row in cursor.fetchall()]
-    conn.close()
-    return services
+    with get_session() as session:
+        results = session.exec(select(Appointment.id, Appointment.date)).all()
+        return [{"id": id, "date": date} for id, date in results]
+
 
 def get_service_by_id_db(service_id: int) -> Optional[Dict[str, Any]]:
-    conn = sqlite3.connect(DB_FILE)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-    cursor.execute("SELECT id, code, service FROM SERVICE WHERE id = ?", (service_id,))
-    row = cursor.fetchone()
-    conn.close()
-    return dict(row) if row else None
+    with get_session() as session:
+        service = session.get(ServiceMapping, service_id)
+        return service.dict() if service else None
+
 
 def get_service_by_code_db(code: str) -> Optional[Dict[str, Any]]:
-    conn = sqlite3.connect(DB_FILE)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-    cursor.execute("SELECT id, code, service FROM SERVICE WHERE code = ?", (code,))
-    row = cursor.fetchone()
-    conn.close()
-    return dict(row) if row else None
+    with get_session() as session:
+        stmt = select(ServiceMapping).where(ServiceMapping.code == code)
+        service = session.exec(stmt).first()
+        return service.dict() if service else None
+
 
 # --- Transport Queries ---
-def get_all_transport_options_db() -> List[Dict[str, Any]]:
-    conn = sqlite3.connect(DB_FILE)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-    cursor.execute("SELECT id, type, description FROM TRANSPORT ORDER BY type")
-    options = [dict(row) for row in cursor.fetchall()]
-    conn.close()
-    return options
 
-def get_transport_by_id_db(transport_id: int) -> Optional[Dict[str, Any]]:
-    conn = sqlite3.connect(DB_FILE)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-    cursor.execute("SELECT id, type, description FROM TRANSPORT WHERE id = ?", (transport_id,))
-    row = cursor.fetchone()
-    conn.close()
-    return dict(row) if row else None
 
-def get_transport_by_type_db(transport_type: str) -> Optional[Dict[str, Any]]:
-    conn = sqlite3.connect(DB_FILE)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-    cursor.execute("SELECT id, type, description FROM TRANSPORT WHERE type = ?", (transport_type,))
-    row = cursor.fetchone()
-    conn.close()
-    return dict(row) if row else None
+# def get_all_transport_options_db() -> List[Dict[str, Any]]:
+#     conn = sqlite3.connect(DB_FILE)
+#     conn.row_factory = sqlite3.Row
+#     cursor = conn.cursor()
+#     cursor.execute("SELECT id, type, description FROM TRANSPORT ORDER BY type")
+#     options = [dict(row) for row in cursor.fetchall()]
+#     conn.close()
+#     return options
+
+
+# def get_transport_by_id_db(transport_id: int) -> Optional[Dict[str, Any]]:
+#     conn = sqlite3.connect(DB_FILE)
+#     conn.row_factory = sqlite3.Row
+#     cursor = conn.cursor()
+#     cursor.execute(
+#         "SELECT id, type, description FROM TRANSPORT WHERE id = ?", (transport_id,))
+#     row = cursor.fetchone()
+#     conn.close()
+#     return dict(row) if row else None
+
+
+# def get_transport_by_type_db(transport_type: str) -> Optional[Dict[str, Any]]:
+#     conn = sqlite3.connect(DB_FILE)
+#     conn.row_factory = sqlite3.Row
+#     cursor = conn.cursor()
+#     cursor.execute(
+#         "SELECT id, type, description FROM TRANSPORT WHERE type = ?", (transport_type,))
+#     row = cursor.fetchone()
+#     conn.close()
+#     return dict(row) if row else None
 
 # --- Appointment Queries and Mutations ---
-def get_appointment_by_id_db(appointment_id: int) -> Optional[Dict[str, Any]]:
-    conn = sqlite3.connect(DB_FILE)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-    cursor.execute(
-        "SELECT id, telephone, date, car, service_id, transport_id FROM APPOINTMENTS WHERE id = ?",
-        (appointment_id,)
-    )
-    row = cursor.fetchone()
-    conn.close()
-    return dict(row) if row else None
 
-def get_appointments_by_telephone_db(telephone: str) -> List[Dict[str, Any]]:
-    conn = sqlite3.connect(DB_FILE)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-    cursor.execute(
-        "SELECT id, telephone, date, car, service_id, transport_id FROM APPOINTMENTS WHERE telephone = ? ORDER BY date",
-        (telephone,)
-    )
-    appointments = [dict(row) for row in cursor.fetchall()]
-    conn.close()
-    return appointments
 
-def get_all_appointment_datetimes_db() -> List[str]:
-    conn = sqlite3.connect(DB_FILE)
-    cursor = conn.cursor()
-    cursor.execute("SELECT date FROM APPOINTMENTS ORDER BY date")
-    datetimes = [row[0] for row in cursor.fetchall()]
-    conn.close()
-    return datetimes
+# def get_appointment_by_id_db(appointment_id: int) -> Optional[Dict[str, Any]]:
+#     with get_session() as session:
+#         appointment = session.get(Appointment, appointment_id)
+#         return appointment.dict() if appointment else None
 
-def add_appointment_db(details: Dict[str, Any]) -> Optional[int]:
-    """
-    Adds an appointment. Expects 'telephone', 'date', 'car', 
-    'service_code', and 'transport_type' in details.
-    Returns the ID of the newly created appointment or None on failure.
-    """
-    conn = None
-    try:
-        conn = sqlite3.connect(DB_FILE)
-        cursor = conn.cursor()
 
-        service = get_service_by_code_db(details["service_code"])
-        if not service:
-            print(f"Service code {details['service_code']} not found.")
-            return None
-        service_id = service['id']
+# def get_appointments_by_telephone_db(telephone: str) -> List[Dict[str, Any]]:
+#     conn = sqlite3.connect(DB_FILE)
+#     conn.row_factory = sqlite3.Row
+#     cursor = conn.cursor()
+#     cursor.execute(
+#         "SELECT id, telephone, date, car, service_id, transport_id FROM APPOINTMENTS WHERE telephone = ? ORDER BY date",
+#         (telephone,)
+#     )
+#     appointments = [dict(row) for row in cursor.fetchall()]
+#     conn.close()
+#     return appointments
 
-        transport = get_transport_by_type_db(details["transport_type"])
-        if not transport:
-            print(f"Transport type {details['transport_type']} not found.")
-            return None
-        transport_id = transport['id']
 
-        cursor.execute(
-            """
-            INSERT INTO APPOINTMENTS (telephone, date, car, service_id, transport_id)
-            VALUES (?, ?, ?, ?, ?)
-            """,
-            (details["telephone"], details["date"], details["car"], service_id, transport_id)
-        )
-        conn.commit()
-        new_id = cursor.lastrowid
-        return new_id
-    except sqlite3.Error as e:
-        print(f"Error adding appointment: {e}")
-        if conn:
-            conn.rollback() # Rollback on error
-        return None
-    finally:
-        if conn:
-            conn.close()
+# def get_all_appointment_datetimes_db() -> List[str]:
+#     conn = sqlite3.connect(DB_FILE)
+#     cursor = conn.cursor()
+#     cursor.execute("SELECT date FROM APPOINTMENTS ORDER BY date")
+#     datetimes = [row[0] for row in cursor.fetchall()]
+#     conn.close()
+#     return datetimes
 
-def delete_all_appointments_by_telephone_db(telephone: str) -> bool:
-    conn = None
-    try:
-        conn = sqlite3.connect(DB_FILE)
-        cursor = conn.cursor()
-        cursor.execute("DELETE FROM APPOINTMENTS WHERE telephone = ?", (telephone,))
-        conn.commit()
-        return cursor.rowcount > 0 # Return True if any rows were deleted
-    except sqlite3.Error as e:
-        print(f"Error deleting appointments by telephone {telephone}: {e}")
-        return False
-    finally:
-        if conn:
-            conn.close()
 
-def delete_appointments_by_telephone_and_date_db(telephone: str, date_str: str) -> bool:
-    """
-    Deletes appointments for a given telephone on a specific date (YYYY-MM-DD).
-    """
-    conn = None
-    try:
-        conn = sqlite3.connect(DB_FILE)
-        cursor = conn.cursor()
-        # Normalize date_str to YYYY-MM-DD for matching against the date part
-        normalized_date = date_str.split("T")[0].split(" ")[0]
-        cursor.execute(
-            "DELETE FROM APPOINTMENTS WHERE telephone = ? AND strftime('%Y-%m-%d', date) = ?",
-            (telephone, normalized_date)
-        )
-        conn.commit()
-        print(f"Delete {cursor.rowcount > 0}")
-        return cursor.rowcount > 0 # Return True if any rows were deleted
-    except sqlite3.Error as e:
-        print(f"Error deleting appointments for {telephone} on {normalized_date}: {e}")
-        return False
-    finally:
-        if conn:
-            conn.close()
+# def add_appointment_db(details: Dict[str, Any]) -> Optional[int]:
+#     """
+#     Adds an appointment. Expects 'telephone', 'date', 'car',
+#     'service_id' (as string), and 'transport_type'.
+#     """
+#     try:
+#         with get_session() as session:
+#             transport = session.exec(
+#                 select(Transport).where(Transport.type == details["transport_type"])
+#             ).first()
+#             if not transport:
+#                 print(f"Transport type {details['transport_type']} not found.")
+#                 return None
+
+#             appointment = Appointment(
+#                 telephone=details["telephone"],
+#                 date=details["date"],
+#                 car=details["car"],
+#                 service_id=details["service_id"],  # Note: this is a string, not a foreign key
+#                 transport_id=transport.id
+#             )
+#             session.add(appointment)
+#             session.commit()
+#             session.refresh(appointment)
+#             return appointment.id
+#     except Exception as e:
+#         print(f"Error adding appointment: {e}")
+#         return None
+
+
+# def delete_all_appointments_by_telephone_db(telephone: str) -> bool:
+#     try:
+#         with get_session() as session:
+#             stmt = select(Appointment).where(Appointment.telephone == telephone)
+#             appointments = session.exec(stmt).all()
+#             if not appointments:
+#                 return False
+#             for appt in appointments:
+#                 session.delete(appt)
+#             session.commit()
+#             return True
+#     except Exception as e:
+#         print(f"Error deleting appointments: {e}")
+#         return False
+
+
+# def delete_appointments_by_telephone_and_date_db(telephone: str, date_str: str) -> bool:
+#     normalized_date = date_str.split("T")[0].split(" ")[0]
+#     try:
+#         with get_session() as session:
+#             stmt = select(Appointment).where(Appointment.telephone == telephone)
+#             matches = [
+#                 appt for appt in session.exec(stmt).all()
+#                 if appt.date.startswith(normalized_date)
+#             ]
+#             for appt in matches:
+#                 session.delete(appt)
+#             session.commit()
+#             return bool(matches)
+#     except Exception as e:
+#         print(f"Error deleting appointments for {telephone} on {normalized_date}: {e}")
+#         return False
 
 if __name__ == '__main__':
     # For testing the database operations directly
     print("Running database_ops.py directly for testing...")
-    create_db()
-    add_data_default_db()
+    # create_db()
+    # add_data_default_db()
 
     print("\n--- Services ---")
     print(get_all_services_db())
-    print(get_service_by_code_db("35"))
-
-    print("\n--- Transport Options ---")
-    print(get_all_transport_options_db())
-    print(get_transport_by_type_db("Wait"))
-
-    print("\n--- Appointments ---")
-    test_appt_details = {
-        "telephone": "5551234567",
-        "date": "2025-12-01T10:00:00",
-        "car": "Honda Civic 2021",
-        "service_code": "35",
-        "transport_type": "Wait"
-    }
-    new_appt_id = add_appointment_db(test_appt_details)
-    if new_appt_id:
-        print(f"Added test appointment with ID: {new_appt_id}")
-        print("Appointment by ID:", get_appointment_by_id_db(new_appt_id))
+    print(get_oil_type("RAV4", 2022, True, "4"))
+    print(get_service_id("5W-30", True, "4"))
     
-    test_appt_details_2 = {
-        "telephone": "5551234567",
-        "date": "2025-12-05T14:00:00",
-        "car": "Honda Civic 2021",
-        "service_code": "55",
-        "transport_type": "None"
-    }
-    add_appointment_db(test_appt_details_2)
-
-    print("\nAppointments for 5551234567:")
-    print(get_appointments_by_telephone_db("5551234567"))
-    
-    print("\nAll appointment datetimes:")
-    print(get_all_appointment_datetimes_db())
-
-    print("\nDeleting appointments for 5551234567 on 2025-12-01...")
-    delete_appointments_by_telephone_and_date_db("5551234567", "2025-12-01")
-    print("Appointments for 5551234567 after deletion:", get_appointments_by_telephone_db("5551234567"))
-
-    print("\nDeleting all remaining appointments for 5551234567...")
-    delete_all_appointments_by_telephone_db("5551234567")
-    print("Appointments for 5551234567 after full deletion:", get_appointments_by_telephone_db("5551234567"))

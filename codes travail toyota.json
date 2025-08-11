@@ -1,31 +1,84 @@
 {
-  "oil_types": ["0W-08", "0W-16", "0W-20", "5W-30"],
+  "oil_types": [
+    "0W-08",
+    "0W-16",
+    "0W-20",
+    "5W-30"
+  ],
   "cylinder_types": {
     "4.0": {
-      "0W-08": "01T4CLC8FZ",
-      "0W-16": "01T4HLS8FZ",
-      "0W-20": "01T6CLS8FZ",
-      "5W-30": "01TSYNUPGS"
+      "0W-08": {
+        "id": "01T4CLC8FZ",
+        "process-time-minutes": "30"
+      },
+      "0W-16": {
+        "id": "01T4HLS8FZ",
+        "process-time-minutes": "36"
+      },
+      "0W-20": {
+        "id": "01T6CLS8FZ",
+        "process-time-minutes": "36"
+      },
+      "5W-30": {
+        "id": "01TSYNUPGS",
+        "process-time-minutes": "30"
+      }
     },
     "4-SUV": {
-      "0W-08": "01T4CLC8FZ",
-      "0W-16": "01T6CLC8FZ",
-      "0W-20": "01T6CLS8SZ",
-      "5W-30": "01TSYNUPGS"
+      "0W-08": {
+        "id": "01T4CLC8FZ",
+        "process-time-minutes": "30"
+      },
+      "0W-16": {
+        "id": "01T6CLC8FZ",
+        "process-time-minutes": "36"
+      },
+      "0W-20": {
+        "id": "01T6CLS8SZ",
+        "process-time-minutes": "36"
+      },
+      "5W-30": {
+        "id": "01TSYNUPGS",
+        "process-time-minutes": "30"
+      }
     },
     "6.0": {
-      "0W-08": "01T4CLC8FZ",
-      "0W-16": "01T6CLC8FZ",
-      "0W-20": "01T6CLS8SZ",
-      "5W-30": "01TSYNUPGR"
+      "0W-08": {
+        "id": "01T4CLC8FZ",
+        "process-time-minutes": "30"
+      },
+      "0W-16": {
+        "id": "01T6CLC8FZ",
+        "process-time-minutes": "36"
+      },
+      "0W-20": {
+        "id": "01T6CLS8SZ",
+        "process-time-minutes": "36"
+      },
+      "5W-30": {
+        "id": "01TSYNUPGR",
+        "process-time-minutes": "30"
+      }
     },
     "8.0": {
-      "0W-08": "01T4CLC8FZ",
-      "0W-20": "01T8TLS8SZ",
-      "5W-30": "01TSYNUPGT"
+      "0W-08": {
+        "id": "01T4CLC8FZ",
+        "process-time-minutes": "30"
+      },
+      "0W-20": {
+        "id": "01T8TLS8SZ",
+        "process-time-minutes": "48"
+      },
+      "5W-30": {
+        "id": "01TSYNUPGT",
+        "process-time-minutes": "51"
+      }
     }
   },
   "defaults": {
-    "0W-20": "01T6CLS8FZ"
+    "0W-20": {
+      "0W-20": "01T6CLS8FZ",
+      "process-time-minutes": "36"
+    }
   }
 }

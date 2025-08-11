@@ -19,23 +19,40 @@ class GetCarScrapper(Scrapper):
 
     async def get_cars(self):
         results = await self.action()
-        for car in results:
-            if isinstance(car, dict):
-                oil_types = db.get_oil_type(
-                    car["model"], car["year"], car["is_hybrid"], car["cylinders"])
-                resultsServices = []
 
-                for oil, is_suv in oil_types:
-                    service_id = db.get_service_id(oil, is_suv, car["cylinders"])
-                    if service_id is not None:
-                        resultsServices.append(service_id)
-                if not resultsServices:
-                    car["service_id"] = ['01T6CLS8FZ']
-                else:
-                    car["service_id"] = list(map(lambda id: [id, "Oil change"], list(set(resultsServices))))
-                del car["cylinders"]
-                del car["is_hybrid"]
+        for car in results:
+            if not isinstance(car, dict):
+                continue  # Skip non-dict items
+
+            model = car["model"]
+            year = car["year"]
+            is_hybrid = car["is_hybrid"]
+            cylinders = car["cylinders"]
+            oil_types = db.get_oil_type(model, year, is_hybrid, cylinders)
+            service_array = []
+            seen_ids = set()
+
+            for oil, is_suv in oil_types:
+                service_info = db.get_service_id(oil, is_suv, cylinders)
+                if service_info:
+                    service_id, processing_time = service_info
+                    if service_id not in seen_ids:
+                        service_array.append({
+                            "service_id": service_id,
+                            "processing_time": processing_time
+                        })
+                        seen_ids.add(service_id)
+        
+            if service_array:
+                car["service_id"] = [[sid["service_id"], "Oil change", sid["processing_time"]] for sid in service_array]
+            else:
+                car["service_id"] = ['01T6CLS8FZ']
+
+            # Remove unneeded fields
+            car.pop("cylinders", None)
+            car.pop("is_hybrid", None)
         return results
+
 
     async def determine_post_phone_entry_state(self, timeout_ms: int = 10000):
         """
