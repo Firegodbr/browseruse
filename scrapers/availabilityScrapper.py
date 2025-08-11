@@ -241,7 +241,7 @@ class AvailabilityScrapper(Scrapper):
         results = {}
         chromium = playwright.chromium
         # Set to True for production
-        browser = await chromium.launch(headless=True)
+        browser = await chromium.launch(headless=False)
         self.page = await browser.new_page()
 
         try:

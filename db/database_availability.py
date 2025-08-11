@@ -7,6 +7,7 @@ from sqlmodel import SQLModel, Field, create_engine, Session, Relationship, Colu
 import re
 import os
 from dotenv import load_dotenv
+import calendar
 load_dotenv()
 # Define the database connection URL (e.g., SQLite or PostgreSQL)
 # Change this URL for PostgreSQL or another DB
@@ -326,17 +327,21 @@ def get_available_appointments(check_values, start_time, end_time):
             for week in weeks:
                 # Fetch days for each week in bulk
                 days = db.query(Day).filter(Day.week_id == week.week_id, Day.day_name == day_name).all()
-
                 if not days:
                     continue  # Skip if the day is not found
 
                 for day in days:
                     # Convert start_date (string) to a datetime.date object
                     day_start_date = datetime.strptime(week.start_date, '%Y-%m-%d').date()
+                    # Convert day name to index (Monday=0, Sunday=6)
+                    target_weekday = list(calendar.day_name).index(day_name)
 
-                    # Only process days that are today or in the future
-                    if day_start_date < today:
-                        continue  # Skip past days
+                    # Get actual date of that day in the current week
+                    day_date = day_start_date + timedelta(days=(target_weekday - day_start_date.weekday()) % 7)
+
+                    # Then use this for filtering
+                    if day_date < today:
+                        continue
 
                     # Fetch timeslots for each day
                     timeslots = db.query(Timeslot).filter(Timeslot.day_id == day.day_id).all()
