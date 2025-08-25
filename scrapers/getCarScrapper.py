@@ -134,6 +134,7 @@ class GetCarScrapper(Scrapper):
         results = await self.action()
 
         final_results = []
+        logger.debug("Enhancing cars...", results)
         for car in results:
             if not isinstance(car, dict):
                 final_results.append(car)
@@ -780,7 +781,7 @@ class GetCarScrapper(Scrapper):
                             if isinstance(result, dict):
                                 result["service_history"] = service_history
                     else:
-                        logger.error("Service history extraction failed.")
+                        logger.info("Service history extraction failed.")
                         for result in results:
                             if isinstance(result, dict):
                                 result["service_history"] = None
@@ -833,7 +834,7 @@ class GetCarScrapper(Scrapper):
                             if isinstance(result, dict):
                                 result["service_history"] = service_history
                     else:
-                        logger.error("Service history extraction failed.")
+                        logger.info("Service history extraction failed.")
                         for result in results:
                             if isinstance(result, dict):
                                 result["service_history"] = None
