@@ -724,7 +724,7 @@ class GetCarScrapper(Scrapper):
         try:
             # --- Browser launch and initial login steps ---
             chromium = playwright.chromium
-            browser = await chromium.launch(headless=False)
+            browser = await chromium.launch(headless=True)
             self.page = await browser.new_page()
             await self.page.set_viewport_size({"width": 1920, "height": 1080})
 
