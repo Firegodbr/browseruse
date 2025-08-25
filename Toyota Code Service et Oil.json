@@ -1,0 +1,1324 @@
+[
+  {
+    "Model": "4RUNNER",
+    "Engine Type": "V6",
+    "Number of Cylinders": 6,
+    "Years": [
+      2003,
+      2004,
+      2005,
+      2006,
+      2007,
+      2008,
+      2009
+    ],
+    "Oil Type": "5W-30",
+    "Is SUV": true,
+    "Oil Change Codes": [
+      "01TSYNUPGR"
+    ],
+    "Service 1 Change Codes": [
+      "10T6C1S15Z"
+    ],
+    "Service 2 Change Codes": [
+      "01TSYNUPGR"
+    ],
+    "Service 3 Change Codes": [
+      "10T6HMS8ZZ"
+    ]
+  },
+  {
+    "Model": "4RUNNER",
+    "Engine Type": "V8",
+    "Number of Cylinders": 8,
+    "Years": [
+      2003,
+      2004,
+      2005,
+      2006,
+      2007,
+      2008,
+      2009
+    ],
+    "Oil Type": "5W-30",
+    "Is SUV": true,
+    "Oil Change Codes": [
+      "01TSYNUPGT"
+    ],
+    "Service 1 Change Codes": [
+      "10T8T1S16Z"
+    ],
+    "Service 2 Change Codes": [
+      "01TSYNUPGT"
+    ],
+    "Service 3 Change Codes": [
+      "10T8T3S60Z"
+    ]
+  },
+  {
+    "Model": "4RUNNER",
+    "Engine Type": "V6",
+    "Number of Cylinders": 6,
+    "Years": [
+      2010,
+      2011,
+      2012,
+      2013,
+      2014,
+      2015,
+      2016,
+      2017,
+      2018,
+      2019,
+      2020,
+      2021,
+      2022,
+      2023,
+      2024
+    ],
+    "Oil Type": "0W-20",
+    "Is SUV": true,
+    "Oil Change Codes": [
+      "01T6CLS8SZ"
+    ],
+    "Service 1 Change Codes": [
+      "10T6C1S15Z"
+    ],
+    "Service 2 Change Codes": [
+      "01T6CLS8SZ"
+    ],
+    "Service 3 Change Codes": [
+      "10T6HMS8ZZ"
+    ]
+  },
+  {
+    "Model": "4RUNNER",
+    "Engine Type": "V8",
+    "Number of Cylinders": 8,
+    "Years": [
+      2010,
+      2011,
+      2012,
+      2013,
+      2014,
+      2015,
+      2016,
+      2017,
+      2018,
+      2019,
+      2020,
+      2021,
+      2022,
+      2023,
+      2024
+    ],
+    "Oil Type": "0W-20",
+    "Is SUV": true,
+    "Oil Change Codes": [
+      "01T8TLS8SZ"
+    ],
+    "Service 1 Change Codes": [
+      "10T8T1S16Z"
+    ],
+    "Service 2 Change Codes": [
+      "01T8TLS8SZ"
+    ],
+    "Service 3 Change Codes": [
+      "10T8T3S60Z"
+    ]
+  },
+  {
+    "Model": "AVALON",
+    "Engine Type": "V6",
+    "Number of Cylinders": 6,
+    "Years": [
+      2003,
+      2004,
+      2005,
+      2006,
+      2007,
+      2008,
+      2009,
+      2010,
+      2011,
+      2012
+    ],
+    "Oil Type": "5W-30",
+    "Is SUV": false,
+    "Oil Change Codes": [
+      "01TSYNUPGR"
+    ],
+    "Service 1 Change Codes": [
+      "10T6C1S15Z"
+    ],
+    "Service 2 Change Codes": [
+      "01TSYNUPGR"
+    ],
+    "Service 3 Change Codes": [
+      "10T6HMS8ZZ"
+    ]
+  },
+  {
+    "Model": "AVALON",
+    "Engine Type": "V6",
+    "Number of Cylinders": 6,
+    "Years": [
+      2013,
+      2014,
+      2015,
+      2016,
+      2017,
+      2018,
+      2019,
+      2020,
+      2021
+    ],
+    "Oil Type": "0W-20",
+    "Is SUV": false,
+    "Oil Change Codes": [
+      "01T6CLS8SZ"
+    ],
+    "Service 1 Change Codes": [
+      "10T6C1S15Z"
+    ],
+    "Service 2 Change Codes": [
+      "01T6CLS8SZ"
+    ],
+    "Service 3 Change Codes": [
+      "10T6HMS8ZZ"
+    ]
+  },
+  {
+    "Model": "AVALON",
+    "Engine Type": "L4",
+    "Number of Cylinders": 4,
+    "Years": [
+      2021
+    ],
+    "Oil Type": "0W-16",
+    "Is SUV": false,
+    "Oil Change Codes": [
+      "01T4HLS8FZ"
+    ],
+    "Service 1 Change Codes": [
+      "10T4C1S16Z"
+    ],
+    "Service 2 Change Codes": [
+      "01T4HLS8FZ"
+    ],
+    "Service 3 Change Codes": [
+      "10T4C3S60Z"
+    ]
+  },
+  {
+    "Model": "CAMRY",
+    "Engine Type": "L4",
+    "Number of Cylinders": 4,
+    "Years": [
+      2003,
+      2004,
+      2005,
+      2006
+    ],
+    "Oil Type": "5W-30",
+    "Is SUV": false,
+    "Oil Change Codes": [
+      "01TSYNUPGS"
+    ],
+    "Service 1 Change Codes": [
+      "10T4C1S16Z"
+    ],
+    "Service 2 Change Codes": [
+      "01TSYNUPGS"
+    ],
+    "Service 3 Change Codes": [
+      "10T4C3S60Z"
+    ]
+  },
+  {
+    "Model": "CAMRY",
+    "Engine Type": "L4",
+    "Number of Cylinders": 4,
+    "Years": [
+      2007,
+      2008,
+      2009
+    ],
+    "Oil Type": [
+      "5W-20",
+      "0W-20"
+    ],
+    "Is SUV": false,
+    "Oil Change Codes": [
+      "01T6CLS8SZ"
+    ],
+    "Service 1 Change Codes": [
+      "10T4C1S16Z"
+    ],
+    "Service 2 Change Codes": [
+      "01T6CLS8SZ"
+    ],
+    "Service 3 Change Codes": [
+      "10T4C3S60Z"
+    ]
+  },
+  {
+    "Model": "CAMRY",
+    "Engine Type": "L4",
+    "Number of Cylinders": 4,
+    "Years": [
+      2010,
+      2011,
+      2012,
+      2013,
+      2014,
+      2015,
+      2016,
+      2017
+    ],
+    "Oil Type": "0W-20",
+    "Is SUV": false,
+    "Oil Change Codes": [
+      "01T6CLS8SZ"
+    ],
+    "Service 1 Change Codes": [
+      "10T4C1S16Z"
+    ],
+    "Service 2 Change Codes": [
+      "01T6CLS8SZ"
+    ],
+    "Service 3 Change Codes": [
+      "10T4C3S60Z"
+    ]
+  },
+  {
+    "Model": "CAMRY",
+    "Engine Type": "L4",
+    "Number of Cylinders": 4,
+    "Years": [
+      2018,
+      2019,
+      2020,
+      2021,
+      2022,
+      2023,
+      2024
+    ],
+    "Oil Type": "0W-16",
+    "Is SUV": false,
+    "Oil Change Codes": [
+      "01T4HLS8FZ"
+    ],
+    "Service 1 Change Codes": [
+      "10T4C1S16Z"
+    ],
+    "Service 2 Change Codes": [
+      "01T4HLS8FZ"
+    ],
+    "Service 3 Change Codes": [
+      "10T4C3S60Z"
+    ]
+  },
+  {
+    "Model": "CAMRY",
+    "Engine Type": "V6",
+    "Number of Cylinders": 6,
+    "Years": [
+      2003,
+      2004,
+      2005,
+      2006,
+      2007,
+      2008,
+      2009,
+      2010,
+      2011
+    ],
+    "Oil Type": "5W-30",
+    "Is SUV": false,
+    "Oil Change Codes": [
+      "01TSYNUPGR"
+    ],
+    "Service 1 Change Codes": [
+      "10T6C1S15Z"
+    ],
+    "Service 2 Change Codes": [
+      "01TSYNUPGR"
+    ],
+    "Service 3 Change Codes": [
+      "10T6HMS8ZZ"
+    ]
+  },
+  {
+    "Model": "CAMRY",
+    "Engine Type": "HV",
+    "Number of Cylinders": 4,
+    "Years": [
+      2007,
+      2008,
+      2009,
+      2010,
+      2011
+    ],
+    "Oil Type": [
+      "5W-20",
+      "0W-20"
+    ],
+    "Is SUV": false,
+    "Oil Change Codes": [
+      "01T6CLS8SZ"
+    ],
+    "Service 1 Change Codes": [
+      "10T4C1S16Z"
+    ],
+    "Service 2 Change Codes": [
+      "01T6CLS8SZ"
+    ],
+    "Service 3 Change Codes": [
+      "10T4C3S60Z"
+    ]
+  },
+  {
+    "Model": "CAMRY",
+    "Engine Type": "HV",
+    "Number of Cylinders": 4,
+    "Years": [
+      2012,
+      2013,
+      2014,
+      2015,
+      2016,
+      2017
+    ],
+    "Oil Type": "0W-20",
+    "Is SUV": false,
+    "Oil Change Codes": [
+      "01T6CLS8SZ"
+    ],
+    "Service 1 Change Codes": [
+      "10T4C1S16Z"
+    ],
+    "Service 2 Change Codes": [
+      "01T6CLS8SZ"
+    ],
+    "Service 3 Change Codes": [
+      "10T4C3S60Z"
+    ]
+  },
+  {
+    "Model": "CAMRY",
+    "Engine Type": "HV",
+    "Number of Cylinders": 4,
+    "Years": [
+      2018,
+      2019,
+      2020,
+      2021,
+      2022,
+      2023,
+      2024
+    ],
+    "Oil Type": "0W-16",
+    "Is SUV": false,
+    "Oil Change Codes": [
+      "01T4HLS8FZ"
+    ],
+    "Service 1 Change Codes": [
+      "10T4C1S16Z"
+    ],
+    "Service 2 Change Codes": [
+      "01T4HLS8FZ"
+    ],
+    "Service 3 Change Codes": [
+      "10T4C3S60Z"
+    ]
+  },
+  {
+    "Model": "CAMRY",
+    "Engine Type": "HV",
+    "Number of Cylinders": 4,
+    "Years": [
+      2025
+    ],
+    "Oil Type": "0W-8",
+    "Is SUV": false,
+    "Oil Change Codes": [],
+    "Service 1 Change Codes": [
+      "10T4C1S16Z"
+    ],
+    "Service 2 Change Codes": [
+      "01T4CLC8FZ"
+    ],
+    "Service 3 Change Codes": [
+      "10T4C3S60Z"
+    ]
+  },
+  {
+    "Model": "CELICA",
+    "Engine Type": "L4",
+    "Number of Cylinders": 4,
+    "Years": [
+      2003,
+      2004,
+      2005
+    ],
+    "Oil Type": "5W-30",
+    "Is SUV": false,
+    "Oil Change Codes": [
+      "01TSYNUPGS"
+    ],
+    "Service 1 Change Codes": [
+      "10T4C1S16Z"
+    ],
+    "Service 2 Change Codes": [
+      "01TSYNUPGS"
+    ],
+    "Service 3 Change Codes": [
+      "10T4C3S60Z"
+    ]
+  },
+  {
+    "Model": "C-HR",
+    "Engine Type": "L4",
+    "Number of Cylinders": 4,
+    "Years": [
+      2018,
+      2019,
+      2020,
+      2021,
+      2022
+    ],
+    "Oil Type": "0W-20",
+    "Is SUV": true,
+    "Oil Change Codes": [
+      "01T6CLS8SZ"
+    ],
+    "Service 1 Change Codes": [
+      "10T4C1S16Z"
+    ],
+    "Service 2 Change Codes": [
+      "01T6CLS8SZ"
+    ],
+    "Service 3 Change Codes": [
+      "10T4C3S60Z"
+    ]
+  },
+  {
+    "Model": "COROLLA",
+    "Engine Type": "1.8L, iM",
+    "Number of Cylinders": 4,
+    "Years": [
+      2003,
+      2004,
+      2005,
+      2006,
+      2007,
+      2008
+    ],
+    "Oil Type": "5W-30",
+    "Is SUV": false,
+    "Oil Change Codes": [
+      "01TSYNUPGS"
+    ],
+    "Service 1 Change Codes": [
+      "10T4C1S16Z"
+    ],
+    "Service 2 Change Codes": [
+      "01TSYNUPGS"
+    ],
+    "Service 3 Change Codes": [
+      "10T4C3S60Z"
+    ]
+  },
+  {
+    "Model": "COROLLA",
+    "Engine Type": "1.8L, iM",
+    "Number of Cylinders": 4,
+    "Years": [
+      2009,
+      2010,
+      2011,
+      2012,
+      2013,
+      2014,
+      2015,
+      2016,
+      2017,
+      2018,
+      2019,
+      2020,
+      2021,
+      2022
+    ],
+    "Oil Type": "0W-20",
+    "Is SUV": false,
+    "Oil Change Codes": [
+      "01T6CLS8SZ"
+    ],
+    "Service 1 Change Codes": [
+      "10T4C1S16Z"
+    ],
+    "Service 2 Change Codes": [
+      "01T6CLS8SZ"
+    ],
+    "Service 3 Change Codes": [
+      "10T4C3S60Z"
+    ]
+  },
+  {
+    "Model": "COROLLA",
+    "Engine Type": "2.0L Sedan & HB (Prod: avant 3/23)",
+    "Number of Cylinders": 4,
+    "Years": [
+      2020,
+      2021,
+      2022,
+      2023
+    ],
+    "Oil Type": "0W-16",
+    "Is SUV": false,
+    "Oil Change Codes": [
+      "01T4HLS8FZ"
+    ],
+    "Service 1 Change Codes": [
+      "10T4C1S16Z"
+    ],
+    "Service 2 Change Codes": [
+      "01T4HLS8FZ"
+    ],
+    "Service 3 Change Codes": [
+      "10T4C3S60Z"
+    ]
+  },
+  {
+    "Model": "COROLLA",
+    "Engine Type": "2.0L Sedan & HB (Prod: avant 3/23)",
+    "Number of Cylinders": 4,
+    "Years": [
+      2024,
+      2025
+    ],
+    "Oil Type": "0W-8",
+    "Is SUV": false,
+    "Oil Change Codes": [],
+    "Service 1 Change Codes": [
+      "10T4C1S16Z"
+    ],
+    "Service 2 Change Codes": [
+      "01T4CLC8FZ"
+    ],
+    "Service 3 Change Codes": [
+      "10T4C3S60Z"
+    ]
+  },
+  {
+    "Model": "COROLLA",
+    "Engine Type": "2.0L Sedan & HB (Prod: après 3/23)",
+    "Number of Cylinders": 4,
+    "Years": [
+      2023,
+      2024,
+      2025
+    ],
+    "Oil Type": "0W-8",
+    "Is SUV": false,
+    "Oil Change Codes": [],
+    "Service 1 Change Codes": [
+      "10T4C1S16Z"
+    ],
+    "Service 2 Change Codes": [
+      "01T4CLC8FZ"
+    ],
+    "Service 3 Change Codes": [
+      "10T4C3S60Z"
+    ]
+  },
+  {
+    "Model": "COROLLA",
+    "Engine Type": "2.4L",
+    "Number of Cylinders": 4,
+    "Years": [
+      2009,
+      2010,
+      2011,
+      2012
+    ],
+    "Oil Type": [
+      "0W-20",
+      "5W-20"
+    ],
+    "Is SUV": false,
+    "Oil Change Codes": [
+      "01T6CLS8SZ"
+    ],
+    "Service 1 Change Codes": [
+      "10T4C1S16Z"
+    ],
+    "Service 2 Change Codes": [
+      "01T6CLS8SZ"
+    ],
+    "Service 3 Change Codes": [
+      "10T4C3S60Z"
+    ]
+  },
+  {
+    "Model": "COROLLA",
+    "Engine Type": "HV",
+    "Number of Cylinders": 4,
+    "Years": [
+      2020,
+      2021,
+      2022,
+      2023,
+      2024
+    ],
+    "Oil Type": "0W-16",
+    "Is SUV": false,
+    "Oil Change Codes": [
+      "01T4HLS8FZ"
+    ],
+    "Service 1 Change Codes": [
+      "10T4C1S16Z"
+    ],
+    "Service 2 Change Codes": [
+      "01T4HLS8FZ"
+    ],
+    "Service 3 Change Codes": [
+      "10T4C3S60Z"
+    ]
+  },
+  {
+    "Model": "COROLLA CROSS",
+    "Engine Type": "Gas",
+    "Number of Cylinders": 4,
+    "Years": [
+      2022,
+      2023
+    ],
+    "Oil Type": "0W-16",
+    "Is SUV": true,
+    "Oil Change Codes": [
+      "01T4HLS8FZ"
+    ],
+    "Service 1 Change Codes": [
+      "10T4C1S16Z"
+    ],
+    "Service 2 Change Codes": [
+      "01T4HLS8FZ"
+    ],
+    "Service 3 Change Codes": [
+      "10T4C3S60Z"
+    ]
+  },
+  {
+    "Model": "COROLLA CROSS",
+    "Engine Type": "Gas",
+    "Number of Cylinders": 4,
+    "Years": [
+      2024
+    ],
+    "Oil Type": "0W-8",
+    "Is SUV": true,
+    "Oil Change Codes": [],
+    "Service 1 Change Codes": [
+      "10T4C1S16Z"
+    ],
+    "Service 2 Change Codes": [
+      "01T4CLC8FZ"
+    ],
+    "Service 3 Change Codes": [
+      "10T4C3S60Z"
+    ]
+  },
+  {
+    "Model": "COROLLA CROSS",
+    "Engine Type": "HV",
+    "Number of Cylinders": 4,
+    "Years": [
+      2023,
+      2024
+    ],
+    "Oil Type": "0W-16",
+    "Is SUV": true,
+    "Oil Change Codes": [
+      "01T4HLS8FZ"
+    ],
+    "Service 1 Change Codes": [
+      "10T4C1S16Z"
+    ],
+    "Service 2 Change Codes": [
+      "01T4HLS8FZ"
+    ],
+    "Service 3 Change Codes": [
+      "10T4C3S60Z"
+    ]
+  },
+  {
+    "Model": "GR COROLLA",
+    "Engine Type": "GR",
+    "Number of Cylinders": 3,
+    "Years": [
+      2023,
+      2024
+    ],
+    "Oil Type": "0W-20",
+    "Is SUV": false,
+    "Oil Change Codes": [
+      "01T6CLS8SZ"
+    ],
+    "Service 1 Change Codes": [
+      "10T4C1S16Z"
+    ],
+    "Service 2 Change Codes": [
+      "01T6CLS8SZ"
+    ],
+    "Service 3 Change Codes": [
+      "10T4C3S60Z"
+    ]
+  },
+  {
+    "Model": "CROWN SIGNIA",
+    "Engine Type": "HV 2.5L",
+    "Number of Cylinders": 4,
+    "Years": [
+      2025
+    ],
+    "Oil Type": "0W-8",
+    "Is SUV": true,
+    "Oil Change Codes": [],
+    "Service 1 Change Codes": [
+      "10T4C1S16Z"
+    ],
+    "Service 2 Change Codes": [
+      "01T4CLC8FZ"
+    ],
+    "Service 3 Change Codes": [
+      "10T4C3S60Z"
+    ]
+  },
+  {
+    "Model": "CROWN",
+    "Engine Type": "2.4L",
+    "Number of Cylinders": 4,
+    "Years": [
+      2023,
+      2024,
+      2025
+    ],
+    "Oil Type": "0W-20",
+    "Is SUV": true,
+    "Oil Change Codes": [
+      "01T6CLS8SZ"
+    ],
+    "Service 1 Change Codes": [
+      "10T4C1S16Z"
+    ],
+    "Service 2 Change Codes": [
+      "01T6CLS8SZ"
+    ],
+    "Service 3 Change Codes": [
+      "10T4C3S60Z"
+    ]
+  },
+  {
+    "Model": "CROWN",
+    "Engine Type": "2.5L",
+    "Number of Cylinders": 4,
+    "Years": [
+      2023,
+      2024,
+      2025
+    ],
+    "Oil Type": "0W-8",
+    "Is SUV": true,
+    "Oil Change Codes": [],
+    "Service 1 Change Codes": [
+      "10T4C1S16Z"
+    ],
+    "Service 2 Change Codes": [
+      "01T4CLC8FZ"
+    ],
+    "Service 3 Change Codes": [
+      "10T4C3S60Z"
+    ]
+  },
+  {
+    "Model": "ECHO",
+    "Engine Type": "Sedan, HB",
+    "Number of Cylinders": 4,
+    "Years": [
+      2003,
+      2004,
+      2005
+    ],
+    "Oil Type": "5W-30",
+    "Is SUV": false,
+    "Oil Change Codes": [
+      "01TSYNUPGS"
+    ],
+    "Service 1 Change Codes": [
+      "10T4C1S16Z"
+    ],
+    "Service 2 Change Codes": [
+      "01TSYNUPGS"
+    ],
+    "Service 3 Change Codes": [
+      "10T4C3S60Z"
+    ]
+  },
+  {
+    "Model": "FJ CRUISER",
+    "Engine Type": "V6",
+    "Number of Cylinders": 6,
+    "Years": [
+      2007,
+      2008,
+      2009
+    ],
+    "Oil Type": "5W-30",
+    "Is SUV": true,
+    "Oil Change Codes": [
+      "01TSYNUPGR"
+    ],
+    "Service 1 Change Codes": [
+      "10T6C1S15Z"
+    ],
+    "Service 2 Change Codes": [
+      "01TSYNUPGR"
+    ],
+    "Service 3 Change Codes": [
+      "10T6HMS8ZZ"
+    ]
+  },
+  {
+    "Model": "FJ CRUISER",
+    "Engine Type": "V6",
+    "Number of Cylinders": 6,
+    "Years": [
+      2010
+    ],
+    "Oil Type": [
+      "0W-20",
+      "5W-20"
+    ],
+    "Is SUV": true,
+    "Oil Change Codes": [
+      "01T6CLS8SZ"
+    ],
+    "Service 1 Change Codes": [
+      "10T6C1S15Z"
+    ],
+    "Service 2 Change Codes": [
+      "01T6CLS8SZ"
+    ],
+    "Service 3 Change Codes": [
+      "10T6HMS8ZZ"
+    ]
+  },
+  {
+    "Model": "FJ CRUISER",
+    "Engine Type": "V6",
+    "Number of Cylinders": 6,
+    "Years": [
+      2011,
+      2012,
+      2013,
+      2014
+    ],
+    "Oil Type": "0W-20",
+    "Is SUV": true,
+    "Oil Change Codes": [
+      "01T6CLS8SZ"
+    ],
+    "Service 1 Change Codes": [
+      "10T6C1S15Z"
+    ],
+    "Service 2 Change Codes": [
+      "01T6CLS8SZ"
+    ],
+    "Service 3 Change Codes": [
+      "10T6HMS8ZZ"
+    ]
+  },
+  {
+    "Model": "GR86",
+    "Engine Type": "2.0L, 2.4L",
+    "Number of Cylinders": 4,
+    "Years": [
+      2017,
+      2018,
+      2019,
+      2020,
+      2022,
+      2023,
+      2024
+    ],
+    "Oil Type": "0W-20",
+    "Is SUV": false,
+    "Oil Change Codes": [
+      "01T6CLS8SZ"
+    ],
+    "Service 1 Change Codes": [
+      "10T4C1S16Z"
+    ],
+    "Service 2 Change Codes": [
+      "01T6CLS8SZ"
+    ],
+    "Service 3 Change Codes": [
+      "10T4C3S60Z"
+    ]
+  },
+  {
+    "Model": "GRAND HIGHLANDER",
+    "Engine Type": "Gas",
+    "Number of Cylinders": 6,
+    "Years": [
+      2024
+    ],
+    "Oil Type": "0W-20",
+    "Is SUV": true,
+    "Oil Change Codes": [
+      "01T6CLS8SZ"
+    ],
+    "Service 1 Change Codes": [
+      "10T6C1S15Z"
+    ],
+    "Service 2 Change Codes": [
+      "01T6CLS8SZ"
+    ],
+    "Service 3 Change Codes": [
+      "10T6HMS8ZZ"
+    ]
+  },
+  {
+    "Model": "GRAND HIGHLANDER",
+    "Engine Type": "HV",
+    "Number of Cylinders": 4,
+    "Years": [
+      2024
+    ],
+    "Oil Type": "0W-16",
+    "Is SUV": true,
+    "Oil Change Codes": [
+      "01T4HLS8FZ"
+    ],
+    "Service 1 Change Codes": [
+      "10T4C1S16Z"
+    ],
+    "Service 2 Change Codes": [
+      "01T4HLS8FZ"
+    ],
+    "Service 3 Change Codes": [
+      "10T4C3S60Z"
+    ]
+  },
+  {
+    "Model": "HIGHLANDER",
+    "Engine Type": "L4",
+    "Number of Cylinders": 4,
+    "Years": [
+      2014,
+      2015,
+      2016,
+      2017,
+      2018,
+      2019,
+      2020,
+      2021,
+      2022,
+      2023
+    ],
+    "Oil Type": "0W-20",
+    "Is SUV": true,
+    "Oil Change Codes": [
+      "01T6CLS8SZ"
+    ],
+    "Service 1 Change Codes": [
+      "10T4C1S16Z"
+    ],
+    "Service 2 Change Codes": [
+      "01T6CLS8SZ"
+    ],
+    "Service 3 Change Codes": [
+      "10T4C3S60Z"
+    ]
+  },
+  {
+    "Model": "HIGHLANDER",
+    "Engine Type": "L4",
+    "Number of Cylinders": 4,
+    "Years": [
+      2024
+    ],
+    "Oil Type": "0W-16",
+    "Is SUV": true,
+    "Oil Change Codes": [
+      "01T4HLS8FZ"
+    ],
+    "Service 1 Change Codes": [
+      "10T4C1S16Z"
+    ],
+    "Service 2 Change Codes": [
+      "01T4HLS8FZ"
+    ],
+    "Service 3 Change Codes": [
+      "10T4C3S60Z"
+    ]
+  },
+  {
+    "Model": "HIGHLANDER",
+    "Engine Type": "HV",
+    "Number of Cylinders": 4,
+    "Years": [
+      2006,
+      2007
+    ],
+    "Oil Type": "5W-30",
+    "Is SUV": true,
+    "Oil Change Codes": [
+      "01TSYNUPGS"
+    ],
+    "Service 1 Change Codes": [
+      "10T4C1S16Z"
+    ],
+    "Service 2 Change Codes": [
+      "01TSYNUPGS"
+    ],
+    "Service 3 Change Codes": [
+      "10T4C3S60Z"
+    ]
+  },
+  {
+    "Model": "HIGHLANDER",
+    "Engine Type": "HV",
+    "Number of Cylinders": 4,
+    "Years": [
+      2008,
+      2009,
+      2010
+    ],
+    "Oil Type": [
+      "0W-20",
+      "5W-20"
+    ],
+    "Is SUV": true,
+    "Oil Change Codes": [
+      "01T6CLS8SZ"
+    ],
+    "Service 1 Change Codes": [
+      "10T4C1S16Z"
+    ],
+    "Service 2 Change Codes": [
+      "01T6CLS8SZ"
+    ],
+    "Service 3 Change Codes": [
+      "10T4C3S60Z"
+    ]
+  },
+  {
+    "Model": "HIGHLANDER",
+    "Engine Type": "HV",
+    "Number of Cylinders": 4,
+    "Years": [
+      2011,
+      2012,
+      2013
+    ],
+    "Oil Type": "0W-20",
+    "Is SUV": true,
+    "Oil Change Codes": [
+      "01T6CLS8SZ"
+    ],
+    "Service 1 Change Codes": [
+      "10T4C1S16Z"
+    ],
+    "Service 2 Change Codes": [
+      "01T6CLS8SZ"
+    ],
+    "Service 3 Change Codes": [
+      "10T4C3S60Z"
+    ]
+  },
+  {
+    "Model": "HIGHLANDER",
+    "Engine Type": "HV",
+    "Number of Cylinders": 4,
+    "Years": [
+      2014,
+      2015,
+      2016,
+      2017,
+      2018,
+      2019,
+      2020,
+      2021,
+      2022,
+      2023
+    ],
+    "Oil Type": "0W-20",
+    "Is SUV": true,
+    "Oil Change Codes": [
+      "01T6CLS8SZ"
+    ],
+    "Service 1 Change Codes": [
+      "10T4C1S16Z"
+    ],
+    "Service 2 Change Codes": [
+      "01T6CLS8SZ"
+    ],
+    "Service 3 Change Codes": [
+      "10T4C3S60Z"
+    ]
+  },
+  {
+    "Model": "HIGHLANDER",
+    "Engine Type": "HV",
+    "Number of Cylinders": 4,
+    "Years": [
+      2024
+    ],
+    "Oil Type": "0W-16",
+    "Is SUV": true,
+    "Oil Change Codes": [
+      "01T4HLS8FZ"
+    ],
+    "Service 1 Change Codes": [
+      "10T4C1S16Z"
+    ],
+    "Service 2 Change Codes": [
+      "01T4HLS8FZ"
+    ],
+    "Service 3 Change Codes": [
+      "10T4C3S60Z"
+    ]
+  },
+  {
+    "Model": "HIGHLANDER",
+    "Engine Type": "V6",
+    "Number of Cylinders": 6,
+    "Years": [
+      2003,
+      2004,
+      2005,
+      2006,
+      2007,
+      2008,
+      2009,
+      2010,
+      2011,
+      2012,
+      2013
+    ],
+    "Oil Type": "5W-30",
+    "Is SUV": true,
+    "Oil Change Codes": [
+      "01TSYNUPGR"
+    ],
+    "Service 1 Change Codes": [
+      "10T6C1S15Z"
+    ],
+    "Service 2 Change Codes": [
+      "01TSYNUPGR"
+    ],
+    "Service 3 Change Codes": [
+      "10T6HMS8ZZ"
+    ]
+  },
+  {
+    "Model": "HIGHLANDER",
+    "Engine Type": "V6",
+    "Number of Cylinders": 6,
+    "Years": [
+      2014,
+      2015,
+      2016,
+      2017,
+      2018,
+      2019
+    ],
+    "Oil Type": "0W-20",
+    "Is SUV": true,
+    "Oil Change Codes": [
+      "01T6CLS8SZ"
+    ],
+    "Service 1 Change Codes": [
+      "10T6C1S15Z"
+    ],
+    "Service 2 Change Codes": [
+      "01T6CLS8SZ"
+    ],
+    "Service 3 Change Codes": [
+      "10T6HMS8ZZ"
+    ]
+  },
+  {
+    "Model": "HIGHLANDER",
+    "Engine Type": "V6",
+    "Number of Cylinders": 6,
+    "Years": [
+      2020,
+      2021,
+      2022,
+      2023
+    ],
+    "Oil Type": "0W-20",
+    "Is SUV": true,
+    "Oil Change Codes": [
+      "01T6CLS8SZ"
+    ],
+    "Service 1 Change Codes": [
+      "10T6C1S15Z"
+    ],
+    "Service 2 Change Codes": [
+      "01T6CLS8SZ"
+    ],
+    "Service 3 Change Codes": [
+      "10T6HMS8ZZ"
+    ]
+  },
+  {
+    "Model": "iA",
+    "Engine Type": "1.5L",
+    "Number of Cylinders": 4,
+    "Years": [
+      2016
+    ],
+    "Oil Type": "0W-20",
+    "Is SUV": false,
+    "Oil Change Codes": [
+      "01T6CLS8SZ"
+    ],
+    "Service 1 Change Codes": [
+      "10T4C1S16Z"
+    ],
+    "Service 2 Change Codes": [
+      "01T6CLS8SZ"
+    ],
+    "Service 3 Change Codes": [
+      "10T4C3S60Z"
+    ]
+  },
+  {
+    "Model": "iM",
+    "Engine Type": "1.8L",
+    "Number of Cylinders": 4,
+    "Years": [
+      2017,
+      2018
+    ],
+    "Oil Type": "0W-20",
+    "Is SUV": false,
+    "Oil Change Codes": [
+      "01T6CLS8SZ"
+    ],
+    "Service 1 Change Codes": [
+      "10T4C1S16Z"
+    ],
+    "Service 2 Change Codes": [
+      "01T6CLS8SZ"
+    ],
+    "Service 3 Change Codes": [
+      "10T4C3S60Z"
+    ]
+  }
+]

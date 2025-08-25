@@ -26,6 +26,7 @@ selectors = {
     "previous-step": "div[cy='previous-step']",
     "cylanders": "div[cy='appointments-step2'] div.css-x0x8yu.e6a24jq34 h6.MuiTypography-root.MuiTypography-subtitle2.MuiTypography-alignLeft.e6a24jq20.css-1hph34g.e1de0imv0",
     "gas-pump-HV": "svg.svg-inline--fa.fa-gas-pump.css-18ga6n6.e73aqgv3[data-icon='gas-pump']",
+    "one-car-detect":"#root > div.css-pxu7mn.evwjw926 > div > div > div.css-48tder.evwjw922 > div.css-1bppemt.e1p817c0 > div.css-1qvekf5.e12pldzn0 > div > div > div > div > div > div > div > div.css-yien0c.e1iianp710 > div > div:nth-child(4) > div > div.e1iianp73.css-olii74.e1bwztlu14 > div > div.css-3ye0ev.e1bwztlu9 > div.css-bkt2fw.e1bwztlu2 > h2",
     # Make an appointment
     "make-appointment": {
         "car-page": "span.css-1nys5gm.euo2vaf14 svg.svg-inline--fa.fa-car.superChip-XLarge.KL-SuperChip-superChipIcon.css-19btgxe.euo2vaf17",
@@ -43,8 +44,14 @@ selectors = {
         "time-availability": "div.css-122qvno.e1ri7uk73 div.e1ri7uk72.KL-Tile-root.css-fif1n0.e1d32nym9",
         "not-available": "div.css-122qvno.e1ri7uk73 div.e1ri7uk72.KL-Tile-root.KL-Tile-disabled.css-4b2f9a.e1d32nym9",
         "time": "div.css-122qvno.e1ri7uk73",
-        "week":"div.MuiTypography-root.MuiTypography-body2.MuiTypography-alignLeft.e1wi0epg0.css-8gqjsk.e1de0imv0"
+        "week": "div.MuiTypography-root.MuiTypography-body2.MuiTypography-alignLeft.e1wi0epg0.css-8gqjsk.e1de0imv0"
     },
+    "denier-service-popup": {
+        "button-activate": "button.MuiButtonBase-root.MuiIconButton-root.MuiIconButton-sizeMedium.KL-IconButton-root.e-size-medium.e-type-primary.ef1u7kc6.e1de0imv0.css-qmac4w.e1de0imv0 .KL-IconButton-container.css-1cr8hl2.ef1u7kc4 svg[data-icon='clock-rotate-left']",
+        "header-title": ".MuiDialog-container .MuiPaper-root .KL-Dialog-headerTitle h2.MuiTypography-root",
+        "top-element": "div[data-testid='virtuoso-top-item-list']",
+        "wrapper-els": "div[data-testid='virtuoso-item-list']"
+    }
 }
 transport_types = ["aucun", "courtoisie", "attente", "reconduire", "laisser"]
 daysWeek = {
@@ -80,3 +87,50 @@ async def click_redenvous(page: Page) -> None:
 async def chose_aviseurs(page: Page) -> None:
     await page.wait_for_selector(selectors["popupAvisaur"], timeout=10000)
     await page.click(selectors["chris"])
+
+import json
+
+def get_service_info(model: str, year: int, engine_type: str, service_type: str) -> dict | None:
+    """
+    Returns the service name and service ID(s) from the JSON file.
+    
+    Parameters:
+        model (str): Car model (e.g., "CAMRY")
+        year (int): Production year (e.g., 2020)
+        engine_type (str): Engine type (e.g., "V6", "L4", "HV")
+        service_type (str): One of "oil", "service1", "service2", "service3"
+        json_file (str): Path to the JSON file
+    
+    Returns:
+        dict | None: { "service_name": str, "service_ids": list[str] } or None if not found
+    """
+    
+    # Map input service_type to JSON field
+    service_map = {
+        "oil": ("Oil Change", "Oil Change Codes"),
+        "service1": ("Service 1", "Service 1 Change Codes"),
+        "service2": ("Service 2", "Service 2 Change Codes"),
+        "service3": ("Service 3", "Service 3 Change Codes"),
+    }
+    
+    if service_type not in service_map:
+        raise ValueError(f"Invalid service_type. Choose from {list(service_map.keys())}")
+    
+    service_name, json_field = service_map[service_type]
+    
+    # Load JSON data
+    with open("./Toyota Code Service et Oil.json", "r", encoding="utf-8") as f:
+        data = json.load(f)
+    
+    # Search for matching entry
+    for entry in data:
+        if (entry["Model"].upper() == model.upper() and
+            entry["Engine Type"].upper() == engine_type.upper() and
+            year in entry["Years"]):
+            
+            return {
+                "service_name": service_name,
+                "service_ids": entry.get(json_field, [])
+            }
+    
+    return None

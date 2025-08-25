@@ -4,7 +4,6 @@ from typing import List, Optional
 import logging
 # Import database operations
 import db.database_ops as db
-from scrapers.makeAppointment import make_appointment_scrape
 from models.schemas import AppointmentInfoQL
 
 from dotenv import load_dotenv
@@ -164,10 +163,10 @@ class Mutation:
 
                 # Step 4: Perform the scraping operation to make the appointment
                 # Directly passing the input object
-                result = await make_appointment_scrape(input)
+                # result = await make_appointment_scrape(input)
 
                 # Optionally, process the result further here (e.g., log, update DB status)
-                print(f"Appointment scrape result: {result}")
+                # print(f"Appointment scrape result: {result}")
 
                 return appointment
 

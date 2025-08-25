@@ -8,6 +8,8 @@ from logs.logging_config import setup_logging
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import os
+from fastapi.responses import RedirectResponse
+import starlette.status as status
 load_dotenv()
 
 # Initialize logging
@@ -28,8 +30,9 @@ async def lifespan(app: FastAPI):
     """
 
     print("Application startup: Initializing database...")
-    db_ops.create_db()
-    db_ops.add_data_default_db() # Add default service/transport if not present
+    was_created = db_ops.create_db()
+    if was_created:
+        db_ops.add_data_default_db()
     db_availability.create_db_if_not_exists()
     print("Database initialized.")
     yield
@@ -52,7 +55,7 @@ async def root():
     """
     Hello world
     """
-    return {"message": "Hello, World!"}
+    return RedirectResponse(url="/docs", status_code=status.HTTP_302_FOUND)
 
 app.include_router(graphql_app, prefix="/graphql", tags=["GraphQL"])
 app.include_router(scraper, prefix="/scraper", tags=["Scrapers"])

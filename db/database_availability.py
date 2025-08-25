@@ -3,19 +3,22 @@ from sqlalchemy.orm import Session
 from sqlmodel import select
 from datetime import datetime, timedelta
 from fastapi import HTTPException
-from sqlmodel import SQLModel, Field, create_engine, Session, Relationship, Column, String, ForeignKey
+# from sqlalchemy import MetaData
+from sqlmodel import SQLModel, Field, create_engine, Session, Relationship, Column, String, Text
 import re
 import os
+from sqlalchemy.orm import registry
 from dotenv import load_dotenv
 import calendar
 load_dotenv()
 # Define the database connection URL (e.g., SQLite or PostgreSQL)
 # Change this URL for PostgreSQL or another DB
 DATABASE_URL = os.environ.get("DATABASE_URL", "sqlite:///test.sqlite")
-
+class DB_Availability(SQLModel, registry=registry()):
+    pass
 # Define the SQLModel classes
 # Weeks Table
-class Week(SQLModel, table=True):
+class Week(DB_Availability, table=True):
     week_id: int = Field(default=None, primary_key=True)
     start_date: str = Field(sa_column=Column(String(255)))  
     end_date: str = Field(sa_column=Column(String(255)))    
@@ -23,7 +26,7 @@ class Week(SQLModel, table=True):
     days: list["Day"] = Relationship(back_populates="week", cascade_delete=True)
 
 # Days Table
-class Day(SQLModel, table=True):
+class Day(DB_Availability, table=True):
     day_id: int = Field(default=None, primary_key=True)
     day_name: str
     week_id: int = Field(foreign_key="week.week_id", ondelete="CASCADE")
@@ -31,25 +34,47 @@ class Day(SQLModel, table=True):
     timeslots: list["Timeslot"] = Relationship(back_populates="day", cascade_delete=True)
 
 # Timeslots Table
-class Timeslot(SQLModel, table=True):
+class Timeslot(DB_Availability, table=True):
     timeslot_id: int = Field(default=None, primary_key=True)
     time: str
     availability: bool
     day_id: int = Field(foreign_key="day.day_id", ondelete="CASCADE")
     day: "Day" = Relationship(back_populates="timeslots")
+    
+
+class Appointment(DB_Availability, table=True):
+    id: int = Field(default=None, primary_key=True)
+    car: str = Field(sa_column=Column(String(255)))
+    service_code: str = Field(sa_column=Column(String(255)))
+    service_description: str = Field(sa_column=Column(Text()))
+    date: str = Field(sa_column=Column(String(255)))
+    telephone: str = Field(sa_column=Column(String(255)))
+    transport_mode: str = Field(sa_column=Column(String(255)))
+    call_logs: list["Call_Log"] = Relationship(back_populates="appointment", cascade_delete=True)
+
+class Call_Log(DB_Availability, table=True):
+    id: int = Field(default=None, primary_key=True)
+    telephone: str = Field(sa_column=Column(String(255)))
+    time: str = Field(sa_column=Column(String(255)))
+    status: str = Field(sa_column=Column(String(255)))
+    error: str | None = Field(
+        default=None,
+        sa_column=Column(Text(), nullable=True)
+    )
+    appointment_id: int | None = Field(foreign_key="appointment.id", ondelete="CASCADE", nullable=True)  # Make it nullable
+    appointment: "Appointment" = Relationship(back_populates="call_logs")
+
 # Connect to the Database
 engine = create_engine(DATABASE_URL, echo=True)
-
 # Create the tables in the database if they don't exist
 
 
 def create_db_if_not_exists():
     # Check if the tables exist before creating
-    SQLModel.metadata.create_all(bind=engine, checkfirst=True)
+    DB_Availability.metadata.create_all(bind=engine, checkfirst=True)    
+
 
 # Dependency to get the database session
-
-
 def get_session():
     """
     Dependency to get the database session.
@@ -391,6 +416,16 @@ def get_available_appointments(check_values, start_time, end_time):
                         available_appointments.extend(timeframes)
 
     return available_appointments
+
+def insert_appointment_db(appointment: Appointment):
+    with Session(engine) as db:
+        db.add(appointment)
+        db.commit()
+        return appointment.id
+def insert_call_log_db(db: Session, call_log: Call_Log):
+    db.add(call_log)
+    db.commit()
+    db.refresh(call_log)  
 
 if __name__ == "__main__":
     print(parse_time_labels("17  au 23 août 2025"))

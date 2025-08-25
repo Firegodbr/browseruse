@@ -5,6 +5,7 @@ from playwright.async_api import Playwright
 from models.schemas import AppointmentInfo
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
+from db.database_availability import insert_appointment_db, Appointment
 load_dotenv(override=True)
 
 logger = logging.getLogger(__name__)
@@ -250,4 +251,7 @@ class MakeAppointmentScrapper(Scrapper):
             if error_message:
                 return error_message
             else:
-                return "Appotintment made successfully"
+                appointment = Appointment(
+                    telephone_number, car, service_id, date, transport_mode)
+                id = insert_appointment_db(appointment)
+                return {"message": "Appotintment made successfully", "id": id}

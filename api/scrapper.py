@@ -1,21 +1,23 @@
 from scrapers.getCarScrapper import GetCarScrapper
 from scrapers.modelAppointmentScrapper import MakeAppointmentScrapper
 from fastapi import APIRouter, HTTPException, Query, Depends
-from models.schemas import AppointmentInfo, CarInfoResponse, AppointmentResponse, AppointmentAvailability, AppointmentAvailabilityApi
+from models.schemas import AppointmentInfo, CarInfoResponse, AppointmentResponse, AppointmentAvailability, AppointmentAvailabilityApi, CallLogCreate
 from scrapers.availabilityScrapper import AvailabilityScrapper
 import logging
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 import db.database_availability as db_availability
 from datetime import datetime
+
 router = APIRouter(tags=["Scrapers"])
 logger = logging.getLogger(__name__)
 
 
 @router.get("/get_cars", summary="Scrape the SDSweb to get info of cars based on telephone number")
-async def get_car_info_api(telephone: str = Query(..., example="5142069161", description="Customer telephone number")):
+async def get_car_info_api(telephone: str = Query(..., example="5149661015", description="Customer telephone number")):
     """
     API endpoint to scrape SDSweb and get car info based on a telephone number.
-    Example: GET /get_cars?telephone=5142069161
+    Example: GET /get_cars?telephone=5149661015
     """
     if not telephone.strip():
         raise HTTPException(
@@ -32,7 +34,7 @@ async def make_appointment_api(info: AppointmentInfo):
     """
     scrapper = MakeAppointmentScrapper(info)
     message = await scrapper.makeAppointment()
-    return AppointmentResponse(message=message)
+    return AppointmentResponse(message=message["message"], appointment_id=message["id"])
 
 
 @router.get("/check_availability", summary="Get available appointments for a customer")
@@ -96,6 +98,28 @@ async def add_availabilities_api(db: Session = Depends(db_availability.get_sessi
 
         return {"message": "Availability successfully added to the database"}
 
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post('/call_log', summary="Add call log to database")
+async def add_call_log_api(call_log: CallLogCreate, db: Session = Depends(db_availability.get_session)):
+    try:
+        # Check if the appointment exists before inserting the call log
+        if call_log.appointment_id:
+            appointment = db.query(db_availability.Appointment).filter(db_availability.Appointment.id == call_log.appointment_id).first()
+            if not appointment:
+                raise HTTPException(status_code=400, detail="Appointment not found")
+
+        # Convert the Pydantic model to an SQLAlchemy model
+        call_log_instance = db_availability.Call_Log(**call_log.model_dump())
+        db_availability.insert_call_log_db(db, call_log_instance)
+        return {"message": "Call log added to the database"}
+    
+    except IntegrityError as e:
+        db.rollback()  # Rollback in case of IntegrityError
+        print(e)
+        raise HTTPException(status_code=400, detail="Foreign key constraint violation")
     except Exception as e:
         print(e)
         raise HTTPException(status_code=500, detail=str(e))
