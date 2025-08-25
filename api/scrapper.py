@@ -4,6 +4,7 @@ from fastapi import APIRouter, HTTPException, Query, Depends
 from models.schemas import AppointmentInfo, CarInfoResponse, AppointmentResponse, AppointmentAvailability, AppointmentAvailabilityApi, CallLogCreate
 from scrapers.availabilityScrapper import AvailabilityScrapper
 import logging
+from typing import Optional
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 import db.database_availability as db_availability
@@ -14,16 +15,23 @@ logger = logging.getLogger(__name__)
 
 
 @router.get("/get_cars", summary="Scrape the SDSweb to get info of cars based on telephone number")
-async def get_car_info_api(telephone: str = Query(..., example="5149661015", description="Customer telephone number")):
+async def get_car_info_api(
+    telephone: str = Query(..., example="5149661015", description="Customer telephone number"),
+    car: Optional[str] = Query(None, example="Toyota", description="Optional car make or model")
+):
     """
     API endpoint to scrape SDSweb and get car info based on a telephone number.
-    Example: GET /get_cars?telephone=5149661015
+    Optionally, a car make or model can be provided.
+    Example: GET /get_cars?telephone=5149661015&car=Toyota
     """
     if not telephone.strip():
         raise HTTPException(
-            status_code=400, detail="Telephone number is required")
-    scrapper = GetCarScrapper(telephone)
+            status_code=400, detail="Telephone number is required"
+        )
+    
+    scrapper = GetCarScrapper(telephone, car)  # Assuming your scraper can handle the optional car parameter
     result = await scrapper.get_cars()
+    
     return CarInfoResponse(message=result)
 
 

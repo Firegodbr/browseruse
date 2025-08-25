@@ -14,16 +14,13 @@ logger = logging.getLogger(__name__)
 
 
 class GetCarScrapper(Scrapper):
-    def __init__(self, telephone: str):
+    def __init__(self, telephone: str, car: str = None):
         super().__init__(telephone)
         self.max_retries = 3
         self.default_timeout = 5000
         self.quick_timeout = 1000
+        self.car = car
 
-    def services_for_maintence(self, services: ServiceSchema):
-        # TODO: Implement service logic
-        pass
-    
     async def _handle_immediate_popups(self, timeout: int = 2500) -> None:
         """
         Handles popups that may appear immediately after an action, before a full page navigation.
@@ -102,15 +99,26 @@ class GetCarScrapper(Scrapper):
         return f"{os.getenv('SDS_URL')}t1/appointments-qab/2"
 
     async def get_cars(self) -> List[Dict]:
-        """Main method to get cars with enhanced service mapping."""
+        """Main method to get cars. It enhances full car details with service info
+        and passes through other results like vehicle lists or statuses."""
         results = await self.action()
         
+        final_results = []
         for car in results:
             if not isinstance(car, dict):
+                final_results.append(car)
                 continue
-            self._enhance_car_with_services(car)
-        print(results)
-        return results
+
+            # Only enhance full car objects, which are expected to have a 'maker' key.
+            # Pass through status messages, errors, or vehicle lists.
+            if "maker" in car and "model" in car:
+                self._enhance_car_with_services(car)
+                final_results.append(car)
+            else:
+                final_results.append(car)
+        
+        print(final_results)
+        return final_results
 
     def _enhance_car_with_services(self, car: Dict) -> None:
         """Enhanced service mapping for cars."""
@@ -252,15 +260,22 @@ class GetCarScrapper(Scrapper):
             # Handle known popup types
             popup_handlers = {
                 "Rendez-vous existants": self._handle_appointment_popup,
-                "Révision des alertes": self._handle_revision_popup,  # Fixed the encoding
-                "RÃ©vision des alertes": self._handle_revision_popup,  # Keep both encodings just in case
+                "Révision des alertes": self._handle_revision_popup,
+                "RÃ©vision des alertes": self._handle_revision_popup,
                 "VÃ©hicules": lambda: ("MULTIPLE_CARS_POPUP", self.page.locator(self.selectors["popupCars"])),
+                "Véhicules": lambda: ("MULTIPLE_CARS_POPUP", self.page.locator(self.selectors["popupCars"])),
             }
             
             for popup_type, handler in popup_handlers.items():
                 if popup_type in title:
                     logger.info(f"Handling popup type: {popup_type}")
-                    return await handler()
+                    # The handler can be an async method or a lambda returning a tuple.
+                    # We must handle both cases to avoid a TypeError.
+                    result = handler()
+                    if asyncio.iscoroutine(result):
+                        return await result  # Await the coroutine if it is one
+                    else:
+                        return result  # Return the tuple directly if it's not
             
             logger.warning(f"Unknown popup type detected: {title}")
             return "UNKNOWN_POPUP", popup_title_loc
@@ -450,53 +465,36 @@ class GetCarScrapper(Scrapper):
             return [{"error": f"Failed to extract car info: {str(e)}"}]
 
     async def handle_multiple_cars_popup(self, popup_locator: Locator) -> List[Dict]:
-        """Handle multiple cars popup more efficiently."""
+        """
+        Extracts a list of car names from the multiple cars popup without further browser interaction.
+        """
+        logger.info("Multiple cars popup detected. Extracting car names directly.")
         results = []
         try:
-            car_buttons = popup_locator.locator(self.selectors["carButtons"])
-            count = await car_buttons.count()
-            
-            if count == 0:
-                return [{"error": "Multiple cars popup detected but no cars found"}]
-            
-            # Dismiss popup first
-            await self._dismiss_popup_safely(popup_locator)
-            
-            # Process each car
-            for i in range(count):
-                try:
-                    car_result = await self._process_single_car_by_index(i)
-                    results.extend(car_result)
-                except Exception as e:
-                    logger.warning(f"Error processing car {i}: {e}")
-                    results.append({"error": f"Failed to process car {i}: {str(e)}"})
-            
-            return results
-            
-        except Exception as e:
-            logger.error(f"Error handling multiple cars popup: {e}")
-            return [{"error": f"Failed to handle multiple cars: {str(e)}"}]
+            # Locate the buttons or elements containing the car descriptions
+            car_elements = popup_locator.locator(self.selectors["carButtons"])
+            count = await car_elements.count()
 
-    async def _process_single_car_by_index(self, index: int) -> List[Dict]:
-        """Process a single car by index with retry logic."""
-        await self.insert_phone_number()
-        await self.page.wait_for_timeout(200)
-        
-        try:
-            car_button = self.page.locator(self.selectors["carButtons"]).nth(index)
-            await car_button.click(timeout=self.default_timeout)
-            await self.page.wait_for_timeout(500)
+            if count == 0:
+                logger.warning("Multiple cars popup was found, but no car elements were inside.")
+                return [{"status": "not_found", "message": "Multiple cars popup detected but no cars found"}]
+
+            # Get the text content from all car elements at once
+            all_car_texts = await car_elements.all_text_contents()
+
+            # Format the result list
+            for car_text in all_car_texts:
+                # Clean up the text if necessary (e.g., remove extra whitespace)
+                cleaned_text = " ".join(car_text.strip().split())
+                if cleaned_text:
+                    results.append({"car": cleaned_text})
             
-            # Check for additional popups
-            popup_loc = self.page.locator(self.selectors["popupTitle"])
-            if await popup_loc.is_visible(timeout=1000):
-                await self._handle_appointment_popup()
-            
-            return await self.extract_single_car_from_page()
-            
+            logger.info(f"Successfully extracted {len(results)} car names from popup.")
+            return results
+
         except Exception as e:
-            logger.error(f"Error processing car at index {index}: {e}")
-            return [{"error": f"Failed to process car {index}: {str(e)}"}]
+            logger.error(f"Error extracting car names from multiple cars popup: {e}")
+            return [{"error": f"Failed to extract car names from popup: {str(e)}"}]
 
     async def get_service_history(self) -> Dict:
         """Get service history with improved error handling."""
