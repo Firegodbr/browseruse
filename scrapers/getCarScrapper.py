@@ -117,7 +117,7 @@ class GetCarScrapper(Scrapper):
             else:
                 final_results.append(car)
         
-        print(final_results)
+        logging.info(final_results)
         return final_results
 
     def _enhance_car_with_services(self, car: Dict) -> None:
@@ -555,6 +555,8 @@ class GetCarScrapper(Scrapper):
             return "SERVICE 3"
         elif "SERVICE 2" in services_done or "SERVICE 3" in services_done:
             return "SERVICE 1"
+        else:
+            return "SERVICE 1"
     async def _extract_service_history(self) -> Dict:
         """Extract service history data efficiently."""
         try:
@@ -609,10 +611,42 @@ class GetCarScrapper(Scrapper):
         except Exception as e:
             logger.error(f"Error extracting service history: {e}")
             return {"error": f"Failed to extract service history: {str(e)}"}
+    
+    async def _select_car_from_popup(self, car_name: str) -> None:
+        """
+        Waits for the 'Véhicules' popup and clicks on the button corresponding to the specified car.
+        """
+        logger.info(f"Waiting for multiple cars popup to select '{car_name}'...")
+        try:
+            # Wait for the popup itself to be visible by its title.
+            popup_title_selector = f'{self.selectors["popupTitle"]}:has-text("Véhicules"), {self.selectors["popupTitle"]}:has-text("VÃ©hicules")'
+            await self.page.locator(popup_title_selector).wait_for(state="visible", timeout=self.default_timeout)
+            logger.info("Multiple cars popup is visible.")
+            
+            # Find the specific car button within the popup that contains the car_name text.
+            car_button_locator = self.page.locator(self.selectors["carButtons"]).filter(has_text=car_name)
 
+            count = await car_button_locator.count()
+            if count == 0:
+                logger.error(f"Car '{car_name}' not found in the popup.")
+                raise Exception(f"Car '{car_name}' not found in the list of vehicles.")
+            if count > 1:
+                logger.warning(f"Multiple matches found for '{car_name}'. Clicking the first one.")
+
+            logger.info(f"Found car '{car_name}'. Clicking it.")
+            await car_button_locator.first.click(timeout=self.default_timeout)
+            await self.page.wait_for_timeout(500) # Short wait for the click to process.
+            logger.info(f"Successfully clicked on '{car_name}'.")
+
+        except PlaywrightTimeoutError:
+            logger.error("Timed out waiting for the multiple cars popup.")
+            raise Exception("Failed to find the multiple cars popup.")
+        except Exception as e:
+            logger.error(f"An error occurred while selecting the car from the popup: {e}")
+            raise e
     
     async def scrapper(self, playwright: Playwright) -> List:
-        """Main scraping method with a split popup detection flow for efficiency."""
+        """Main scraping method with separate flows for targeted car search vs. general phone search."""
         results = []
         browser = None
         
@@ -628,51 +662,88 @@ class GetCarScrapper(Scrapper):
             await self.click_redenvous()
             await self.chose_aviseurs()
             
-            # --- NEW SPLIT POPUP HANDLING LOGIC ---
-            
-            # 1. Enter phone number, which triggers subsequent actions and navigations
+            # Insert phone number, which is common to both flows
             await self.insert_phone_number()
-            
-            # 2. First stage: Handle immediate popups that appear on the same page
-            await self._handle_immediate_popups()
-            
-            # 3. Wait for the primary navigation to the car page to complete
-            logger.info("Waiting for page navigation after phone number submission...")
-            try:
-                # Wait for the URL to change to the main appointments page, which is the expected outcome
-                await self.page.wait_for_url(f"{os.getenv('SDS_URL')}t1/appointments-qab/**", timeout=7000)
-                logger.info(f"Navigation successful. New URL: {self.page.url}")
-            except PlaywrightTimeoutError:
-                logger.warning("Page did not navigate as expected. Proceeding with analysis on the current page.")
-            
-            # 4. Second stage: Handle subsequent popups on the new page (e.g., 'Révision des alertes')
-            logger.info("Page may have loaded. Now clearing any remaining intermediate popups...")
-            await self._clear_all_intermediate_popups()
-            
-            # --- Determine Final State ---
-            logger.info("Popup clearing complete. Determining final page state.")
-            state, element_or_page = await self.determine_page_state()
-            logger.info(f"Final determined state: {state}")
 
-            # --- State Handling ---
-            state_handlers = {
-                "NOT_FOUND": self._handle_not_found_state,
-                "ONE_CAR_PAGE": self._handle_single_car_state,
-                "MULTIPLE_CARS_POPUP": self._handle_multiple_cars_state,
-            }
-            
-            handler = state_handlers.get(state, self._handle_unknown_state)
-            car_results = await handler(element_or_page)
-            results.extend(car_results)
-            
-            # Get service history if we are on the single car page and have valid results
-            if state == "ONE_CAR_PAGE" and results and not any("error" in r for r in results):
-                service_history = await self.get_service_history()
-                if service_history and "error" not in service_history:
-                    logger.info(f"Successfully retrieved service history.")
-                    for result in results:
-                        if isinstance(result, dict):
-                            result["service_history"] = service_history
+            if self.car:
+                # --- TARGETED WORKFLOW: A specific car is provided ---
+                logger.info(f"Specific car requested: '{self.car}'. Starting targeted flow.")
+                
+                # 1. Select the specified car from the 'Véhicules' popup
+                await self._select_car_from_popup(self.car)
+                
+                # 2. Handle any intermediate popups that appear after selection but before navigation
+                await self._clear_all_intermediate_popups()
+                
+                # 3. Check if URL has changed. If not, force navigation by clicking the next step button.
+                current_url = self.page.url
+                if not current_url.startswith(self.get_single_car_page_url_pattern()):
+                    logger.info("URL has not changed. Clicking 'next-step' to force navigation.")
+                    try:
+                        await self.page.locator(self.selectors["next-step"]).click(timeout=self.default_timeout)
+                        await self.page.wait_for_url(f"{os.getenv('SDS_URL')}t1/appointments-qab/**", timeout=7000)
+                        logger.info(f"Navigation successful after click. New URL: {self.page.url}")
+                    except PlaywrightTimeoutError:
+                        logger.error("Failed to navigate to the car page after clicking next step.")
+                        raise Exception("Could not navigate to the car details page.")
+                
+                # 4. On the new page, clear any final popups (e.g., 'Révision des alertes')
+                logger.info("On new page, clearing any final popups.")
+                await self._clear_all_intermediate_popups()
+
+                # 5. Extract car details and service history from the final page
+                car_results = await self.extract_single_car_from_page()
+                results.extend(car_results)
+
+                if results and not any("error" in r for r in results):
+                    service_history = await self.get_service_history()
+                    if service_history and "error" not in service_history:
+                        logger.info(f"Successfully retrieved service history for {self.car}.")
+                        for result in results:
+                            if isinstance(result, dict):
+                                result["service_history"] = service_history
+            else:
+                # --- STANDARD WORKFLOW: Only a telephone is provided ---
+                logger.info("No specific car requested. Starting standard discovery flow.")
+                
+                # 1. Handle immediate popups that appear on the same page
+                await self._handle_immediate_popups()
+                
+                # 2. Wait for the primary navigation to the car page to complete
+                logger.info("Waiting for page navigation after phone number submission...")
+                try:
+                    await self.page.wait_for_url(f"{os.getenv('SDS_URL')}t1/appointments-qab/**", timeout=7000)
+                    logger.info(f"Navigation successful. New URL: {self.page.url}")
+                except PlaywrightTimeoutError:
+                    logger.warning("Page did not navigate as expected. Proceeding with analysis on the current page.")
+                
+                # 3. Handle subsequent popups on the new page
+                logger.info("Page may have loaded. Now clearing any remaining intermediate popups...")
+                await self._clear_all_intermediate_popups()
+                
+                # 4. Determine final page state (e.g., not found, one car, multiple cars)
+                logger.info("Popup clearing complete. Determining final page state.")
+                state, element_or_page = await self.determine_page_state()
+                logger.info(f"Final determined state: {state}")
+
+                # 5. Handle the determined state
+                state_handlers = {
+                    "NOT_FOUND": self._handle_not_found_state,
+                    "ONE_CAR_PAGE": self._handle_single_car_state,
+                    "MULTIPLE_CARS_POPUP": self._handle_multiple_cars_state,
+                }
+                handler = state_handlers.get(state, self._handle_unknown_state)
+                car_results = await handler(element_or_page)
+                results.extend(car_results)
+                
+                # 6. Get service history if on a single car page with valid results
+                if state == "ONE_CAR_PAGE" and results and not any("error" in r for r in results):
+                    service_history = await self.get_service_history()
+                    if service_history and "error" not in service_history:
+                        logger.info(f"Successfully retrieved service history.")
+                        for result in results:
+                            if isinstance(result, dict):
+                                result["service_history"] = service_history
             
         except Exception as e:
             logger.critical(f"Critical error in scrapper: {e}", exc_info=True)

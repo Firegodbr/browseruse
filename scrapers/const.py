@@ -27,6 +27,7 @@ selectors = {
     "cylanders": "div[cy='appointments-step2'] div.css-x0x8yu.e6a24jq34 h6.MuiTypography-root.MuiTypography-subtitle2.MuiTypography-alignLeft.e6a24jq20.css-1hph34g.e1de0imv0",
     "gas-pump-HV": "svg.svg-inline--fa.fa-gas-pump.css-18ga6n6.e73aqgv3[data-icon='gas-pump']",
     "one-car-detect":"#root > div.css-pxu7mn.evwjw926 > div > div > div.css-48tder.evwjw922 > div.css-1bppemt.e1p817c0 > div.css-1qvekf5.e12pldzn0 > div > div > div > div > div > div > div > div.css-yien0c.e1iianp710 > div > div:nth-child(4) > div > div.e1iianp73.css-olii74.e1bwztlu14 > div > div.css-3ye0ev.e1bwztlu9 > div.css-bkt2fw.e1bwztlu2 > h2",
+    "next-step": "div[cy='next-step']",
     # Make an appointment
     "make-appointment": {
         "car-page": "span.css-1nys5gm.euo2vaf14 svg.svg-inline--fa.fa-car.superChip-XLarge.KL-SuperChip-superChipIcon.css-19btgxe.euo2vaf17",
