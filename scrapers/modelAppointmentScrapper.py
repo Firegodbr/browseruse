@@ -1,7 +1,8 @@
 from .scrapper import Scrapper
 import logging
 import os
-from playwright.async_api import Playwright
+from playwright.async_api import Playwright, Locator
+from playwright.async_api import TimeoutError as PlaywrightTimeoutError
 from models.schemas import AppointmentInfo
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
@@ -18,240 +19,279 @@ class MakeAppointmentScrapper(Scrapper):
     def __init__(self, config: AppointmentInfo):
         super().__init__(config.telephone)
         self.config = config
+        # --- BEST PRACTICE: Define timeouts in one place ---
+        self.default_timeout = 10000
+        self.quick_timeout = 2000
 
     async def makeAppointment(self):
         return await self.action()
 
+    # --- HELPER FUNCTIONS: These are self-contained utilities ---
+
     def data_index(self, timeHM: str) -> int:
-        """Get the correct position of the time on the schedule table
-
-        Args:
-            time (str): Time in HH:MM format
-
-        Returns:
-            int: index of the position starting from 1 and goes until 63
-        """
         starts = "6:45"
         start_dt = datetime.strptime(starts, "%H:%M")
         target_dt = datetime.strptime(timeHM, "%H:%M")
-        interval = 15  # minutes
-
-        # Ensure the time is within the valid range
+        interval = 15
         if target_dt < start_dt or target_dt > datetime.strptime("22:00", "%H:%M"):
             raise ValueError(
                 "Time is out of bounds (must be between 06:45 and 22:00)")
-
-        # Compute the number of intervals passed
         delta = target_dt - start_dt
         total_minutes = delta.total_seconds() / 60
-
-        # Calculate the index (1-based)
         index = int(total_minutes // interval) + 2
-
         return index
 
     def get_weeks_until_date(self, target_datehour: str) -> tuple[int, str, str]:
-        """Calculate how many full weeks from today until the given target datehour.
-
-        Args:
-            target_datehour (str): datehour in format YYYY-MM-DDTHH:MM:SS
-
-        Returns:
-            tuple: Number of full weeks, day of the week, and time (HH:MM) of the target.
-        """
-        # Parse the target datehour
         target_datetime = datetime.strptime(
             target_datehour, "%Y-%m-%dT%H:%M:%S")
-
-        # Get today's date and strip time (use date only)
         current_date = datetime.now().date()
         target_date = target_datetime.date()
-
-        # Align to Monday of current and target week
         current_monday = current_date - timedelta(days=current_date.weekday())
         target_monday = target_date - timedelta(days=target_date.weekday())
-
-        # Calculate the number of full weeks between the two Mondays
         delta = target_monday - current_monday
         full_weeks = delta.days // 7
+        return full_weeks, target_datetime.strftime("%A"), target_datetime.strftime("%H:%M")
 
-        # Return number of weeks and day of the week of the target date
-        return full_weeks, target_datetime.strftime("%A"),  target_datetime.strftime("%H:%M")
+    # --- REFACTORED LOGIC: Borrowed and adapted from getCarScrapper.py ---
 
-    async def find_car(self, car: str) -> str:
-        """Find the car on the list
-
-        Args:
-            page (Page): Playwright page
-            car (str): Car to find
-
-        Returns:
-            str: Determines if the car was found
+    async def _select_car_from_popup(self, car_name: str) -> None:
         """
-        located_cars = self.page.locator(selector=self.selectors["carsList"])
-        count = await located_cars.count()
-        year, maker, model = car.split(" ")
-        for i in range(count):
-            car_text = (await located_cars.nth(i).text_content()).strip()
-            print(car_text, car)
-            if year in car_text and maker in car_text and model in car_text:
-                await located_cars.nth(i).click()
-                break
-        return "Car found"
-
-    async def handle_popup(self, car: str) -> None:
-        await self.page.wait_for_timeout(1000)
+        Waits for the 'Véhicules' popup and clicks on the button corresponding to the specified car.
+        This is a critical step to ensure the correct vehicle is chosen before proceeding.
+        """
         logger.info(
-            f" Checking for existing popup dialog for {self.telephone}")
-        # Wait up to 2 seconds for the popup to appear instead of sleeping blindly
-        popup_locator = self.page.locator(self.selectors["popupTitle"])
-        count = await popup_locator.count()
-        if count == 0:
-            logger.info(
-                f" No existing popup dialog found for {self.telephone}")
-            return
+            f"Waiting for multiple cars popup to select '{car_name}'...")
         try:
-            text = await popup_locator.text_content()
-            logger.info(
-                f" Existing popup dialog found for {self.telephone}: {text}")
+            # Wait for the popup itself to be visible by its title.
+            popup_title_selector = f'{self.selectors["popupTitle"]}:has-text("Véhicules"), {self.selectors["popupTitle"]}:has-text("VÃ©hicules")'
+            await self.page.locator(popup_title_selector).wait_for(state="visible", timeout=self.default_timeout)
+            logger.info("Multiple cars popup is visible.")
 
-            if text == "Rendez-vous existants":
-                # More efficient way to click the ancestor button
-                await self.page.locator(self.selectors["popupTitle-add-redenvous"]).locator("xpath=ancestor::button[1]").click()
-                await self.page.wait_for_timeout(500)
-                await popup_locator.wait_for(state="detached", timeout=2000)
-                # Wait for popup to potentially change instead of using timeout
-                # await page.wait_for_load_state('networkidle')
+            # Find and click the specific car button
+            year, maker, model = car_name.split(" ")
+            car_buttons = self.page.locator(self.selectors["carsList"])
+            count = await car_buttons.count()
+
+            car_found = False
+            for i in range(count):
+                car_text = (await car_buttons.nth(i).text_content()).strip()
+                if year in car_text and maker in car_text and model in car_text:
+                    await car_buttons.nth(i).click()
+                    car_found = True
+                    break
+
+            if not car_found:
+                raise Exception(
+                    f"Car '{car_name}' not found in the list of vehicles.")
+
+            # Short wait for the click to process.
+            await self.page.wait_for_timeout(500)
+            logger.info(f"Successfully clicked on '{car_name}'.")
+
+        except PlaywrightTimeoutError:
+            logger.error("Timed out waiting for the multiple cars popup.")
+            # This might not be an error if there's only one car, so we can continue.
+            logger.info("Assuming single car for this user, proceeding.")
+        except Exception as e:
+            logger.error(
+                f"An error occurred while selecting the car from the popup: {e}")
+            raise e  # Re-raise the exception to stop the process
+
+    async def _clear_all_intermediate_popups(self, max_attempts: int = 3) -> None:
+        """
+        Iteratively checks for and dismisses known intermediate popups until the page is clear.
+        This handles 'Rendez-vous existants' and 'Révision des alertes'.
+        """
+        logger.info("Starting iterative popup clearing process...")
+        for attempt in range(max_attempts):
+            # Wait for potential popups to render
+            await self.page.wait_for_timeout(1000)
+
+            try:
+                popup_title_loc = self.page.locator(
+                    self.selectors["popupTitle"])
+                if not await popup_title_loc.is_visible(timeout=self.quick_timeout):
+                    logger.info("No more popups detected. Page is clear.")
+                    return
+
+                title = (await popup_title_loc.text_content() or "").strip()
                 logger.info(
-                    " Clicked to resolve 'Rendez-vous existants' popup")
-                await self.handle_popup(car)
+                    f"Attempt {attempt + 1}: Found popup with title '{title}'")
 
-            elif text == "Véhicules":
-                await self.find_car(car)
-                await self.page.wait_for_timeout(500)
-                await self.handle_popup(car)
+                if "Rendez-vous existants" in title:
+                    logger.info("Handling 'Rendez-vous existants' popup.")
+                    await self.page.locator(self.selectors["popupTitle-add-redenvous"]).locator("xpath=ancestor::button[1]").click()
+                    continue
 
-        except TimeoutError:
-            logger.info(
-                f" No existing popup dialog found for {self.telephone}")
+                elif "Révision des alertes" in title or "RÃ©vision des alertes" in title:
+                    logger.info("Handling 'Révision des alertes' popup.")
+                    # Easiest way to dismiss this one
+                    await self.page.keyboard.press("Escape")
+                    continue
+
+                # If it's the 'Véhicules' popup, we assume _select_car_from_popup handled it.
+                elif "Véhicules" in title or "VÃ©hicules" in title:
+                    logger.warning(
+                        "Car selection popup appeared again. Something might be wrong.")
+                    # We break because this should have been handled already.
+                    return
+
+                else:
+                    logger.info(
+                        f"Detected an unhandled popup ('{title}'). Stopping clearing process.")
+                    return
+
+            except PlaywrightTimeoutError:
+                logger.info(
+                    f"No popups found within the timeout on attempt {attempt + 1}. Page is clear.")
+                return
+            except Exception as e:
+                logger.warning(f"An error occurred during popup clearing: {e}")
+                await self.page.keyboard.press("Escape")
+
+        logger.warning("Reached max attempts for clearing popups.")
+
+    # --- MAIN SCRAPPER METHOD: Refactored for resilience ---
 
     async def scrapper(self, playwright: Playwright) -> dict:
-
-        service_id = self.config.service_id
-        car = self.config.car
-        telephone_number = self.config.telephone
-        date = self.config.date
-        transport_mode = self.config.transport_mode
-        chromium = playwright.chromium
-        # Set to True for production
-        browser = await chromium.launch(headless=True, args=["--start-maximized"])
-        self.page = await browser.new_page(viewport={"width": 1920, "height": 1080})
+        browser = None
         error_message = None
+
         try:
-            await self.page.goto(f"{os.getenv("SDS_URL")}/login", wait_until="networkidle")
+            # --- 1. SETUP AND LOGIN ---
+            chromium = playwright.chromium
+            browser = await chromium.launch(headless=False, args=["--start-maximized"])
+            self.page = await browser.new_page(viewport={"width": 1920, "height": 1080})
 
-            logger.info(f" Login")
+            await self.page.goto(f"{os.getenv('SDS_URL')}/login", wait_until="networkidle")
             await self.login()
-            logger.info(f" Pressing redenvous button")
             await self.click_redenvous()
-            logger.info(f" Chosing avior button")
             await self.chose_aviseurs()
-            logger.info(
-                f" Searching with telephone number: {telephone_number}")
             await self.insert_phone_number()
+
+            # --- 2. ROBUST NAVIGATION TO CAR PAGE ---
+            # This new section replaces the old `handle_popup` logic
             logger.info(
-                f" Check for an existing appointment: {telephone_number}")
-            await self.handle_popup(car)
+                "Now robustly handling car selection and intermediate popups.")
+            await self._select_car_from_popup(self.config.car)
+            await self._clear_all_intermediate_popups()
 
-            logger.info(" Moving to car info")
-            await self.page.wait_for_selector(self.selectors["make-appointment"]["car-page"], timeout=10000)
+            # --- 3. VERIFY AND PROCEED TO OPERATIONS ---
+            logger.info(
+                "Verifying we are on the car info page before proceeding.")
+            await self.page.wait_for_selector(self.selectors["make-appointment"]["car-page"], timeout=self.default_timeout)
             await self.page.click(self.selectors["make-appointment"]["next-step"])
+            logger.info("Successfully navigated past car info page.")
 
-            logger.info(" Add operation to car")
-            await self.page.wait_for_selector(self.selectors["make-appointment"]["add-operation-button"], timeout=10000)
+            # --- 4. ADD OPERATION (Service) ---
+            logger.info(f"Adding operation: {self.config.service_id}")
+            await self.page.wait_for_selector(self.selectors["make-appointment"]["add-operation-button"], timeout=self.default_timeout)
             await self.page.click(self.selectors["make-appointment"]["add-operation-button"])
 
-            # Wait for the container to appear
-            await self.page.wait_for_selector(self.selectors["make-appointment"]["operation-input"], timeout=10000)
-            await self.page.fill(self.selectors["make-appointment"]["operation-input"], service_id)
+            await self.page.wait_for_selector(self.selectors["make-appointment"]["operation-input"], timeout=self.default_timeout)
+            await self.page.fill(self.selectors["make-appointment"]["operation-input"], self.config.service_id)
             await self.page.keyboard.press("Enter")
-            await self.page.click("body")
-            # await page.wait_for_timeout(1000)
-            # Wait for the container to appear
-            await self.page.wait_for_selector(self.selectors["make-appointment"]["next-step"], timeout=10000)
+            await self.page.click("body")  # To dismiss any dropdowns
+
+            await self.page.wait_for_selector(self.selectors["make-appointment"]["next-step"], timeout=self.default_timeout)
             await self.page.click(self.selectors["make-appointment"]["next-step"])
-            logger.info(" Schedule operation")
+
+            # --- 5. SCHEDULE THE APPOINTMENT ---
+            logger.info("Navigating the calendar to schedule the appointment.")
             await self.page.wait_for_selector(self.selectors["make-appointment"]["calender-next"], timeout=30000)
-            await self.page.wait_for_timeout(1000)
-            logger.info(" Schedule operation: chose the right transport")
-            locator = self.page.locator(
+
+            # Select transport mode
+            transport_locator = self.page.locator(
                 self.selectors["make-appointment"]["transport-input"])
             for i, transport in enumerate(self.transport_types):
-                if transport == transport_mode.lower():
-                    await locator.nth(i).click()
+                if transport == self.config.transport_mode.lower():
+                    await transport_locator.nth(i).click()
                     break
-            logger.info(" Schedule operation: chose the right week")
-            clicks, weekday, timeHM = self.get_weeks_until_date(date)
+
+            # Navigate to the correct week
+            clicks, weekday, timeHM = self.get_weeks_until_date(
+                self.config.date)
             for i in range(int(clicks)):
-                await self.page.wait_for_timeout(500)
+                # Small delay to prevent stale element issues
+                await self.page.wait_for_timeout(300)
                 await self.page.click(self.selectors["make-appointment"]["calender-next"])
 
-            logger.info(" Schedule operation: chose the correct hour")
-            time_index = self.data_index(timeHM)
-            max_retries = 20
-            retries = 0
-            found = False
-
-            while not found and retries < max_retries:
-                locator = self.page.locator(f"div[data-index='{time_index}']")
-                if await locator.count() > 0:
-                    try:
-                        await locator.scroll_into_view_if_needed()
-                        found = True
-                        logger.info(" Element found")
-                        break
-                    except Exception as e:
-                        logger.info(
-                            f" Element exists but failed to check. Error: {e}")
-                else:
-                    logger.info(" Element not found yet. Scrolling...")
-
-                await self.page.evaluate(f"""
-                    document.querySelector("{self.selectors["make-appointment"]['time-scrooler']}").scrollBy(0, 200);
-                """)
-                await self.page.wait_for_timeout(500)
-                retries += 1
-            if not found:
-                logger.info("ERROR: Max retries reached. Element not found.")
-            else:
-                day = self.daysWeek[weekday]
-                # Once the element is found, click the time-table
-                await self.page.click(f"div[data-index='{time_index}'] div div.css-122qvno.e1ri7uk73:nth-child({day})")
-
+            # Select the correct time slot
+            # ... inside the scrapper method ...
+            # Select the correct time slot
             logger.info(
-                " Schedule operation: chose the correct transport mode")
+                f"Attempting to select time slot for {weekday} at {timeHM}.")
+            time_index = self.data_index(timeHM)
+            day_index = self.daysWeek[weekday]
+            time_slot_selector = f"div[data-index='{time_index}'] div div.css-122qvno.e1ri7uk73:nth-child({day_index + 1})"
+            print(time_slot_selector)
+            time_slot_locator = self.page.locator(time_slot_selector)
 
+            # NEW: Targeted scrolling loop
+            max_retries = 20
+            found = False
+            for i in range(max_retries):
+                # Check if the element is now visible in the viewport
+                if await time_slot_locator.is_visible():
+                    logger.info("Time slot element is now visible.")
+                    found = True
+                    break
+
+                # If not visible, scroll the specific container down
+                logger.info(
+                    f"Scrolling container to find time slot... (Attempt {i+1}/{max_retries})")
+                scroll_container_selector = self.selectors["make-appointment"]['time-scrooler']
+                await self.page.evaluate(f"""
+                    let container = document.querySelector("{scroll_container_selector}");
+                    if (container) {{
+                        container.scrollBy(0, 200);
+                    }}
+                """)
+                await self.page.wait_for_timeout(300)  # Brief pause for scroll to render
+
+            if not found:
+                raise Exception(
+                    f"Could not find time slot element after {max_retries} scroll attempts.")
+
+            # Once found, click the element
+            await time_slot_locator.click()
+            
+            logger.info("Successfully clicked the time slot.")
+            # ...
+            # --- 6. FINALIZE ---
+            logger.info("Finalizing the appointment.")
             await self.page.type(self.selectors["make-appointment"]["taken-by"], "5543")
             await self.page.click(self.selectors["make-appointment"]["taken-by"])
-            try:
-                await self.page.wait_for_selector(self.selectors["make-appointment"]["finalize-qppointment"], timeout=10000)
-                await self.page.click(self.selectors["make-appointment"]["finalize-qppointment"], timeout=10000)
-            except Exception as e:
-                logger.error(f"An error occurred: {e}")
-                error_message = "Appotintment was unable to be made on the last step. Please try again later with another time perhaps."
-            # await page.wait_for_timeout(100000)
-            logger.info(" Appointment made successfully")
-            await self.page.wait_for_timeout(1500)
+
+            finalize_button = self.page.locator(
+                self.selectors["make-appointment"]["finalize-qppointment"])
+            await finalize_button.wait_for(state="visible", timeout=self.default_timeout)
+            await finalize_button.click()
+
+            logger.info(
+                "Appointment made successfully. Waiting for confirmation.")
+            # Wait for confirmation to appear / page to change
+            await self.page.wait_for_timeout(2000)
+
         except Exception as e:
-            error_message = f"An error occurred: {e}"
-            logger.error(f"An error occurred: {e}")
+            error_message = f"An error occurred during appointment creation: {e}"
+            logger.error(error_message, exc_info=True)
+            # You could add screenshot logic here for debugging
+            # await self.page.screenshot(path=f"error_{self.config.telephone}.png")
+
         finally:
-            # logging.info(f" Total execution time: {execution_time:.2f} seconds")
-            await browser.close()
+            if browser:
+                await browser.close()
+
             if error_message:
-                return error_message
+                return {"error": error_message}
             else:
                 appointment = Appointment(
-                    telephone_number, car, service_id, date, transport_mode)
-                id = insert_appointment_db(appointment)
-                return {"message": "Appotintment made successfully", "id": id}
+                    telephone=self.config.telephone,
+                    car=self.config.car,
+                    service_code=self.config.service_id,  # if `service_id` maps to `service_code`
+                    date=self.config.date,
+                    transport_mode=self.config.transport_mode
+                )
+                appointment_id = insert_appointment_db(appointment)
+                return {"message": "Appointment made successfully", "id": appointment_id}
