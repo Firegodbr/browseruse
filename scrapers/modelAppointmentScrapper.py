@@ -42,8 +42,13 @@ class MakeAppointmentScrapper(Scrapper):
         return index
 
     def get_weeks_until_date(self, target_datehour: str) -> tuple[int, str, str]:
-        target_datetime = datetime.strptime(
-            target_datehour, "%Y-%m-%dT%H:%M:%S")
+        # Try to parse with the first format
+        try:
+            target_datetime = datetime.strptime(target_datehour, "%Y-%m-%dT%H:%M:%S")
+        except ValueError:
+            # If it fails, try the second format
+            target_datetime = datetime.strptime(target_datehour, "%Y-%m-%d %H:%M:%S")
+        
         current_date = datetime.now().date()
         target_date = target_datetime.date()
         current_monday = current_date - timedelta(days=current_date.weekday())
@@ -52,7 +57,6 @@ class MakeAppointmentScrapper(Scrapper):
         full_weeks = delta.days // 7
         return full_weeks, target_datetime.strftime("%A"), target_datetime.strftime("%H:%M")
 
-    # --- REFACTORED LOGIC: Borrowed and adapted from getCarScrapper.py ---
 
     async def _select_car_from_popup(self, car_name: str) -> None:
         """
@@ -284,7 +288,7 @@ class MakeAppointmentScrapper(Scrapper):
                 await browser.close()
 
             if error_message:
-                return {"error": error_message}
+                return {"error": error_message, "message": "Appointment creation failed"}
             else:
                 appointment = Appointment(
                     telephone=self.config.telephone,

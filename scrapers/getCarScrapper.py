@@ -134,7 +134,6 @@ class GetCarScrapper(Scrapper):
         results = await self.action()
 
         final_results = []
-        logger.debug("Enhancing cars...", results)
         for car in results:
             if not isinstance(car, dict):
                 final_results.append(car)

@@ -121,6 +121,7 @@ async def add_call_log_api(call_log: CallLogCreate, db: Session = Depends(db_ava
 
         # Convert the Pydantic model to an SQLAlchemy model
         call_log_instance = db_availability.Call_Log(**call_log.model_dump())
+        logger.info(call_log_instance)
         db_availability.insert_call_log_db(db, call_log_instance)
         return {"message": "Call log added to the database"}
     
