@@ -157,25 +157,25 @@ class GetCarScrapper(Scrapper):
         is_hybrid = car.get("is_hybrid", False)
         cylinders = car.get("cylinders", "")
 
-        oil_types = db.get_oil_type(model, year, is_hybrid, cylinders)
         service_array = []
         seen_ids = set()
-        # --- Oil Change Codes ---
-        for oil, is_suv in oil_types:
-            service_info = db.get_service_id(oil, is_suv, cylinders)
-            if service_info:
-                service_id, processing_time = service_info
-                if service_id not in seen_ids:
-                    service_array.append({
-                        "service_id": service_id,
-                        "service_name": "Oil Change",
-                        "processing_time": processing_time
-                    })
-                    seen_ids.add(service_id)
-                    break
-        if not service_array:
-            service_array = [{"service_id": "01T6CLS8FZ",
-                              "service_name": "Oil Change", "processing_time": 30}]
+        # oil_types = db.get_oil_type(model, year, is_hybrid, cylinders)
+        # # --- Oil Change Codes ---
+        # for oil, is_suv in oil_types:
+        #     service_info = db.get_service_id(oil, is_suv, cylinders)
+        #     if service_info:
+        #         service_id, processing_time = service_info
+        #         if service_id not in seen_ids:
+        #             service_array.append({
+        #                 "service_id": service_id,
+        #                 "service_name": "Oil Change",
+        #                 "processing_time": processing_time
+        #             })
+        #             seen_ids.add(service_id)
+        #             break
+        # if not service_array:
+        #     service_array = [{"service_id": "01T6CLS8FZ",
+        #                       "service_name": "Oil Change", "processing_time": 30}]
         # print(car)
         # --- Service History ---
         next_service = self.get_next_service(car["service_history"])
@@ -193,7 +193,7 @@ class GetCarScrapper(Scrapper):
                 if service_id not in seen_ids:
                     service_array.append({
                         "service_id": service_id[0],
-                        "service_name": "Car Regular Maintenance",
+                        "service_name": "entretien régulier du véhicule",
                         "processing_time": 60  # adjust per service type
                     })
                     seen_ids.add(service_id)
