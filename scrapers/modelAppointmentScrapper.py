@@ -190,7 +190,7 @@ class MakeAppointmentScrapper(Scrapper):
         try:
             # --- 1. SETUP AND LOGIN ---
             chromium = playwright.chromium
-            browser = await chromium.launch(headless=False, args=["--start-maximized"])
+            browser = await chromium.launch(headless=True, args=["--start-maximized"])
             self.page = await browser.new_page(viewport={"width": 1920, "height": 1080})
 
             await self.page.goto(f"{os.getenv('SDS_URL')}/login", wait_until="networkidle")
