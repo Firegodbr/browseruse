@@ -42,6 +42,9 @@ async def make_appointment_api(info: AppointmentInfo):
     """
     scrapper = MakeAppointmentScrapper(info)
     message = await scrapper.makeAppointment()
+    if "error" in message:
+        logger.error(message["error"])
+        raise HTTPException(status_code=400, detail=message["message"])
     return AppointmentResponse(message=message["message"], appointment_id=message["id"])
 
 

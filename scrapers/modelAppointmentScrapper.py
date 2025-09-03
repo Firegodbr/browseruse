@@ -28,34 +28,60 @@ class MakeAppointmentScrapper(Scrapper):
 
     # --- HELPER FUNCTIONS: These are self-contained utilities ---
 
+    
     def data_index(self, timeHM: str) -> int:
-        starts = "6:45"
-        start_dt = datetime.strptime(starts, "%H:%M")
-        target_dt = datetime.strptime(timeHM, "%H:%M")
-        interval = 15
-        if target_dt < start_dt or target_dt > datetime.strptime("22:00", "%H:%M"):
-            raise ValueError(
-                "Time is out of bounds (must be between 06:45 and 22:00)")
+        START_TIME_STR = "06:45"
+        END_TIME_STR = "22:00"
+        INTERVAL_MINUTES = 15
+
+        start_dt = datetime.strptime(START_TIME_STR, "%H:%M")
+        end_dt = datetime.strptime(END_TIME_STR, "%H:%M")
+
+        try:
+            target_dt = datetime.strptime(timeHM, "%H:%M")
+        except ValueError:
+            raise ValueError("timeHM must be in HH:MM 24-hour format")
+
+        if target_dt < start_dt or target_dt >= end_dt:
+            raise ValueError(f"Time is out of bounds (must be between {START_TIME_STR} and {END_TIME_STR}, exclusive)")
+
         delta = target_dt - start_dt
         total_minutes = delta.total_seconds() / 60
-        index = int(total_minutes // interval) + 2
+        index = int(total_minutes // INTERVAL_MINUTES) + 1  # or remove +1 if 0-based
+
         return index
 
-    def get_weeks_until_date(self, target_datehour: str) -> tuple[int, str, str]:
-        # Try to parse with the first format
-        try:
-            target_datetime = datetime.strptime(target_datehour, "%Y-%m-%dT%H:%M:%S")
-        except ValueError:
-            # If it fails, try the second format
-            target_datetime = datetime.strptime(target_datehour, "%Y-%m-%d %H:%M:%S")
+
+    def get_weeks_until_date(self, target_datetime_str: str) -> tuple[int, str, str]:
+        """
+        Returns:
+            - Number of full weeks between current Monday and target date's Monday
+            - Weekday name of target date (e.g., "Monday")
+            - Time of day in HH:MM format (e.g., "14:30")
         
+        Accepted formats:
+            - "YYYY-MM-DDTHH:MM:SS"
+            - "YYYY-MM-DD HH:MM:SS"
+        """
+        try:
+            target_datetime = datetime.strptime(target_datetime_str, "%Y-%m-%dT%H:%M:%S")
+        except ValueError:
+            try:
+                target_datetime = datetime.strptime(target_datetime_str, "%Y-%m-%d %H:%M:%S")
+            except ValueError:
+                raise ValueError("target_datetime_str must be in 'YYYY-MM-DDTHH:MM:SS' or 'YYYY-MM-DD HH:MM:SS' format")
+
         current_date = datetime.now().date()
         target_date = target_datetime.date()
+
         current_monday = current_date - timedelta(days=current_date.weekday())
         target_monday = target_date - timedelta(days=target_date.weekday())
-        delta = target_monday - current_monday
-        full_weeks = delta.days // 7
+
+        delta_days = (target_monday - current_monday).days
+        full_weeks = delta_days // 7
+
         return full_weeks, target_datetime.strftime("%A"), target_datetime.strftime("%H:%M")
+
 
 
     async def _select_car_from_popup(self, car_name: str) -> None:
@@ -164,7 +190,7 @@ class MakeAppointmentScrapper(Scrapper):
         try:
             # --- 1. SETUP AND LOGIN ---
             chromium = playwright.chromium
-            browser = await chromium.launch(headless=True, args=["--start-maximized"])
+            browser = await chromium.launch(headless=False, args=["--start-maximized"])
             self.page = await browser.new_page(viewport={"width": 1920, "height": 1080})
 
             await self.page.goto(f"{os.getenv('SDS_URL')}/login", wait_until="networkidle")
@@ -227,7 +253,7 @@ class MakeAppointmentScrapper(Scrapper):
                 f"Attempting to select time slot for {weekday} at {timeHM}.")
             time_index = self.data_index(timeHM)
             day_index = self.daysWeek[weekday]
-            time_slot_selector = f"div[data-index='{time_index}'] div div.css-122qvno.e1ri7uk73:nth-child({day_index + 1})"
+            time_slot_selector = f"div[data-index='{time_index}'] div div.css-122qvno.e1ri7uk73:nth-child({day_index})"
             print(time_slot_selector)
             time_slot_locator = self.page.locator(time_slot_selector)
 
@@ -276,6 +302,12 @@ class MakeAppointmentScrapper(Scrapper):
                 "Appointment made successfully. Waiting for confirmation.")
             # Wait for confirmation to appear / page to change
             await self.page.wait_for_timeout(2000)
+            url = self.page.url
+            if url == f'{os.getenv('SDS_URL')}t1/appointments-qab/1':
+                logger.info("Appointment made successfully.")
+            else:
+                error_message = "Appointment creation failed."
+                logger.error("Appointment creation failed.")
 
         except Exception as e:
             error_message = f"An error occurred during appointment creation: {e}"
