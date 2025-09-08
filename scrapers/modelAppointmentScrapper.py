@@ -48,7 +48,8 @@ class MakeAppointmentScrapper(Scrapper):
         delta = target_dt - start_dt
         total_minutes = delta.total_seconds() / 60
         index = int(total_minutes // INTERVAL_MINUTES) + 1  # or remove +1 if 0-based
-
+        if int(timeHM.split(":")[0]) >= 12:
+            index += 1
         return index
 
 
@@ -190,7 +191,7 @@ class MakeAppointmentScrapper(Scrapper):
         try:
             # --- 1. SETUP AND LOGIN ---
             chromium = playwright.chromium
-            browser = await chromium.launch(headless=True, args=["--start-maximized"])
+            browser = await chromium.launch(headless=False, args=["--start-maximized"])
             self.page = await browser.new_page(viewport={"width": 1920, "height": 1080})
 
             await self.page.goto(f"{os.getenv('SDS_URL')}/login", wait_until="networkidle")
