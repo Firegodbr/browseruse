@@ -127,7 +127,8 @@ async def add_call_log_api(call_log: CallLogCreate, db: Session = Depends(db_ava
         logger.info(call_log_instance)
         db_availability.insert_call_log_db(db, call_log_instance)
         return {"message": "Call log added to the database"}
-    
+    except HTTPException as e:
+        raise e
     except IntegrityError as e:
         db.rollback()  # Rollback in case of IntegrityError
         print(e)
