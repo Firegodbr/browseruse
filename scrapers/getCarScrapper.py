@@ -503,11 +503,13 @@ class GetCarScrapper(Scrapper):
             # Check if hybrid
             hybrid_element = await self.page.query_selector(self.selectors["gas-pump-HV"])
             is_hybrid = hybrid_element is not None
-
+            # Check callers name
+            caller_element = await (await self.page.query_selector(self.selectors["owner-telephone"])).text_content()
             return [{
                 "maker": maker.strip(),
                 "model": model.strip(),
                 "year": year.strip(),
+                "caller": caller_element.strip(),
                 "cylinders": cylinders.strip(),
                 "is_hybrid": is_hybrid
             }]

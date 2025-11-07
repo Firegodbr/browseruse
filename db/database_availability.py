@@ -54,6 +54,7 @@ class Appointment(DB_Availability, table=True):
 
 class Call_Log(DB_Availability, table=True):
     id: int = Field(default=None, primary_key=True)
+    name: str = Field(sa_column=Column(String(255)), nullable=True)
     telephone: str = Field(sa_column=Column(String(255)))
     time: str = Field(sa_column=Column(String(255)))
     status: str = Field(sa_column=Column(String(255)))

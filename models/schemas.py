@@ -7,6 +7,7 @@ import re
 
 class CallLogCreate(BaseModel):
     telephone: str
+    name: Optional[str]
     time: str
     status: str
     error: Optional[str] = None
