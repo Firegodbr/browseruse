@@ -16,8 +16,8 @@ logger = logging.getLogger(__name__)
 
 @router.get("/get_cars", summary="Scrape the SDSweb to get info of cars based on telephone number")
 async def get_car_info_api(
-    telephone: str = Query(..., example="5149661015", description="Customer telephone number"),
-    car: Optional[str] = Query(None, example="Toyota", description="Optional car make or model")
+    telephone: str = Query(..., examples="5149661015", description="Customer telephone number"),
+    car: Optional[str] = Query(None, examples="Toyota", description="Optional car make or model")
 ):
     """
     API endpoint to scrape SDSweb and get car info based on a telephone number.
@@ -50,9 +50,9 @@ async def make_appointment_api(info: AppointmentInfo):
 
 @router.get("/check_availability", summary="Get available appointments for a customer")
 async def get_appointments_api(
-    timeframe: str = Query(..., example="14:00-16:00",
+    timeframe: str = Query(..., examples="14:00-16:00",
                            description="Appointment timeframe"),
-    weekdays: str = Query(..., example="Monday,Tuesday",
+    weekdays: str = Query(..., examples="Monday,Tuesday",
                           description="Days of the week")
 ):
     """

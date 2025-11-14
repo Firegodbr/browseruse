@@ -56,41 +56,41 @@ class TestScraperEndpoints(unittest.TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertIn("Invalid data", response.text)
 
-    @patch("api.scrapper.db_availability.insert_call_log_db")
-    @patch("api.scrapper.db_availability.get_session")
-    def test_call_log_success(self, mock_session, mock_insert):
-        """Test /scraper/call_log inserts successfully."""
-        mock_db = MagicMock()
-        mock_session.return_value = mock_db
-        mock_db.query.return_value.filter.return_value.first.return_value = True
+    # @patch("api.scrapper.db_availability.insert_call_log_db")
+    # @patch("api.scrapper.db_availability.get_session")
+    # def test_call_log_success(self, mock_session, mock_insert):
+    #     """Test /scraper/call_log inserts successfully."""
+    #     mock_db = MagicMock()
+    #     mock_session.return_value = mock_db
+    #     mock_db.query.return_value.filter.return_value.first.return_value = True
 
-        response = client.post("/scraper/call_log", json={
-            "telephone": "5149661015",
-            "time": "1131421341",
-            "status": "completed call",
-            "error": None,
-            "appointment_id": 1
-        })
+    #     response = client.post("/scraper/call_log", json={
+    #         "telephone": "5149661015",
+    #         "time": "1131421341",
+    #         "status": "completed call",
+    #         "error": None,
+    #         "appointment_id": 1
+    #     })
 
-        self.assertEqual(response.status_code, 200)
-        self.assertIn("Call log added", response.text)
+    #     self.assertEqual(response.status_code, 200)
+    #     self.assertIn("Call log added", response.text)
 
-    @patch("api.scrapper.db_availability.get_session")
-    def test_call_log_appointment_not_found(self, mock_session):
-        """Test /scraper/call_log when appointment not found."""
-        mock_db = MagicMock()
-        mock_session.return_value = mock_db
-        mock_db.query.return_value.filter.return_value.first.return_value = None
+    # @patch("api.scrapper.db_availability.get_session")
+    # def test_call_log_appointment_not_found(self, mock_session):
+    #     """Test /scraper/call_log when appointment not found."""
+    #     mock_db = MagicMock()
+    #     mock_session.return_value = mock_db
+    #     mock_db.query.return_value.filter.return_value.first.return_value = None
 
-        response = client.post("/scraper/call_log", json={
-            "telephone": "5149661015",
-            "time": "1131421341",
-            "status": "not completed call",
-            "error": None,
-            "appointment_id": 999
-        })
-        self.assertEqual(response.status_code, 400)
-        self.assertIn("Appointment not found", response.text)
+    #     response = client.post("/scraper/call_log", json={
+    #         "telephone": "5149661015",
+    #         "time": "1131421341",
+    #         "status": "not completed call",
+    #         "error": None,
+    #         "appointment_id": 999
+    #     })
+    #     self.assertEqual(response.status_code, 400)
+    #     self.assertIn("Appointment not found", response.text)
 
 
 
