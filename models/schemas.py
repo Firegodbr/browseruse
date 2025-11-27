@@ -26,6 +26,9 @@ class CallLogCreate(BaseModel):
     error: Annotated[Optional[str], Field(default=None, description="Error message if any")]
     appointment_id: Annotated[Optional[int], Field(default=None, description="Associated appointment ID")]
 
+class FeedbackCreate(BaseModel):
+    feedback: Annotated[str, Field(description="Customer feedback")]
+    phone_number: Annotated[str, Field(description="Customer phone number")]
 
 class TransportModeEnum(StrEnum):  # StrEnum ensures JSON-friendly string behavior
     aucun = "aucun"

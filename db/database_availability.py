@@ -64,6 +64,23 @@ class Call_Log(DB_Availability, table=True):
     )
     appointment_id: int | None = Field(foreign_key="appointment.id", ondelete="CASCADE", nullable=True)  # Make it nullable
     appointment: "Appointment" = Relationship(back_populates="call_logs")
+    feedback: "Feedback" = Relationship(back_populates="call_log", sa_relationship_kwargs={"uselist": False})
+
+
+class Feedback(DB_Availability, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    call_log_id: int | None = Field(
+        default=None,
+        foreign_key="call_log.id",
+        nullable=True,
+        ondelete="CASCADE"
+    )
+    feedback: str | None = Field(
+        default=None,
+        sa_column=Column(Text, nullable=True)
+    )
+    
+    call_log: "Call_Log" = Relationship(back_populates="feedback")
 
 # Connect to the Database
 engine = create_engine(DATABASE_URL, echo=True)
@@ -426,7 +443,30 @@ def insert_appointment_db(appointment: Appointment):
 def insert_call_log_db(db: Session, call_log: Call_Log):
     db.add(call_log)
     db.commit()
-    db.refresh(call_log)  
+    db.refresh(call_log)
+    return call_log.id
+
+def insert_feedback_db(db: Session, feedback: Feedback):
+    db.add(feedback)
+    db.commit()
+    db.refresh(feedback)
+    return feedback.id
+
+def get_latest_feedback(db: Session, phone_number: str) -> Feedback | None:
+    statement = (
+        select(Feedback)
+        .join(Feedback.call_log)
+        .where(Call_Log.telephone == phone_number)
+        .order_by(Feedback.id.desc())
+        .limit(1)
+    )
+    return db.exec(statement).first()
+
+def update_feedback_db(db: Session, feedback: Feedback) -> Feedback:
+    updated = db.merge(feedback)
+    db.commit()
+    db.refresh(updated)
+    return updated
 
 if __name__ == "__main__":
     print(parse_time_labels("17  au 23 août 2025"))
