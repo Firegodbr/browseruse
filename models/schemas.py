@@ -20,6 +20,7 @@ class CallLogCreate(BaseModel):
     )
 
     telephone: Annotated[str, Field(description="Customer telephone number")]
+    telephone_from: Annotated[Optional[str], Field(default=None, description="Caller's phone number (optional)")]
     name: Annotated[Optional[str], Field(default=None, description="Customer name (optional)")]
     time: Annotated[str, Field(description="Call timestamp or time string")]
     status: Annotated[str, Field(description="Status of the call")]
