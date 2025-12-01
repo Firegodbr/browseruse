@@ -5,8 +5,9 @@ from playwright.async_api import Playwright, Locator
 from playwright.async_api import TimeoutError as PlaywrightTimeoutError
 from models.schemas import AppointmentInfo
 from dotenv import load_dotenv
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from db.database_availability import insert_appointment_db, Appointment
+
 load_dotenv(override=True)
 
 logger = logging.getLogger(__name__)
@@ -53,6 +54,7 @@ class MakeAppointmentScrapper(Scrapper):
         return index
 
 
+
     def get_weeks_until_date(self, target_datetime_str: str) -> tuple[int, str, str]:
         """
         Returns:
@@ -64,6 +66,14 @@ class MakeAppointmentScrapper(Scrapper):
             - "YYYY-MM-DDTHH:MM:SS"
             - "YYYY-MM-DD HH:MM:SS"
         """
+        # Ensure the input is a string, if not convert it to string
+        if isinstance(target_datetime_str, datetime):
+            target_datetime_str = target_datetime_str.strftime("%Y-%m-%dT%H:%M:%S")
+        elif isinstance(target_datetime_str, date):
+            # If it's a date object, assume the time is 00:00:00
+            target_datetime_str = datetime.combine(target_datetime_str, datetime.min.time()).strftime("%Y-%m-%dT%H:%M:%S")
+        
+        # Attempt to parse the string into a datetime object
         try:
             target_datetime = datetime.strptime(target_datetime_str, "%Y-%m-%dT%H:%M:%S")
         except ValueError:
@@ -72,6 +82,7 @@ class MakeAppointmentScrapper(Scrapper):
             except ValueError:
                 raise ValueError("target_datetime_str must be in 'YYYY-MM-DDTHH:MM:SS' or 'YYYY-MM-DD HH:MM:SS' format")
 
+        # Calculate the number of full weeks
         current_date = datetime.now().date()
         target_date = target_datetime.date()
 
@@ -81,6 +92,7 @@ class MakeAppointmentScrapper(Scrapper):
         delta_days = (target_monday - current_monday).days
         full_weeks = delta_days // 7
 
+        # Return the results
         return full_weeks, target_datetime.strftime("%A"), target_datetime.strftime("%H:%M")
 
 
